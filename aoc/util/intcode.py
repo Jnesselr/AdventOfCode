@@ -26,6 +26,7 @@ class Intcode(object):
         6: InstructionType(2, False),
         7: InstructionType(3, True),
         8: InstructionType(3, True),
+        9: InstructionType(1, False),
         99: InstructionType(0, False)
     }
 
@@ -44,6 +45,7 @@ class Intcode(object):
         self._input_address = 0
         self.has_output = False
         self._output_value = 0
+        self._relative_base = 0
 
         self.reset()
 
@@ -56,6 +58,7 @@ class Intcode(object):
         self._input_address = 0
         self.has_output = False
         self._output_value = 0
+        self._relative_base = 0
 
     def input(self, value):
         if not self.waiting_for_input:
@@ -94,11 +97,16 @@ class Intcode(object):
             code = code // 10
 
             if i == instruction_type.parameter_count and instruction_type.last_parameter_is_pointer:
-                params.append(value)
+                if mode == 2:
+                    params.append(self._relative_base + value)
+                else:
+                    params.append(value)
             elif mode == 0:
                 params.append(self.ram.setdefault(value, 0))
             elif mode == 1:
                 params.append(value)
+            elif mode == 2:
+                params.append(self.ram.setdefault(self._relative_base + value, 0))
             else:
                 raise ValueError(f"Unknown parameter mode: {mode}")
 
@@ -140,6 +148,8 @@ class Intcode(object):
                 self.ram[instruction.params[2]] = 1 if instruction.params[0] < instruction.params[1] else 0
             elif instruction.opcode == 8:
                 self.ram[instruction.params[2]] = 1 if instruction.params[0] == instruction.params[1] else 0
+            elif instruction.opcode == 9:
+                self._relative_base += instruction.params[0]
             elif instruction.opcode == 99:
                 self.halted = True
                 return
