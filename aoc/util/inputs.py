@@ -15,7 +15,7 @@ class Input(object):
         self.file_path.parent.mkdir(exist_ok=True, parents=True)
         self.file_path.touch(exist_ok=True)
 
-    def list(self):
+    def lines(self):
         with open(str(self.file_path), 'r') as fh:
             return list(fh.readlines())
 
