@@ -1,9 +1,9 @@
-from aoc.util.inputs import touch, input_list
+from aoc.util.inputs import Input
 
 
 class Y2019D1(object):
     def __init__(self, file_name):
-        self.input = list(map(lambda x: int(x.strip()), input_list(file_name)))
+        self.input = list(map(lambda x: int(x.strip()), Input(file_name).list()))
 
     @staticmethod
     def _fuel_for_mass(mass):
