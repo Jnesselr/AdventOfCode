@@ -12,8 +12,6 @@ class Y2019D5(object):
 
         outputs = []
         while not self.computer.halted:
-            self.computer.run()
-
             if self.computer.has_output:
                 output = self.computer.output()
                 outputs.append(output)
@@ -31,9 +29,7 @@ class Y2019D5(object):
         self.computer.reset()
         self.computer.run()
         self.computer.input(5)
-        self.computer.run()
         result = self.computer.output()
-        self.computer.run()
 
         print("Part 2:", result)
 

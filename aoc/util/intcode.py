@@ -52,6 +52,10 @@ class Intcode(object):
 
         self.instruction_pointer = 0
         self.halted = False
+        self.waiting_for_input = False
+        self._input_address = 0
+        self.has_output = False
+        self._output_value = 0
 
     def input(self, value):
         if not self.waiting_for_input:
@@ -61,13 +65,18 @@ class Intcode(object):
         self._input_address = 0
         self.waiting_for_input = False
 
+        self.run()
+
     def output(self):
         if not self.has_output:
             raise ValueError("No output available!")
 
         result = self._output_value
+
         self.has_output = False
         self._output_value = 0
+        self.run()
+
         return result
 
     def _fetch(self) -> Instruction:
