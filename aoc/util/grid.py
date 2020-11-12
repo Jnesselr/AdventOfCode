@@ -42,14 +42,30 @@ class InfiniteGrid(Generic[T]):
 
     # TODO This makes assumptions about the coordinate system. It assumes X_RIGHT_Y_UP.
     def to_grid(self) -> Grid[T]:
-        min_x = self.min_x
-        max_y = self.max_y
+        data = {}
 
-        width = self.max_x - min_x + 1
-        height = max_y - self.min_y + 1
+        min_x = min_y = 4294967296
+        max_x = max_y = 0
+
+        for coordinate, item in self._data.items():
+            x = coordinate.x
+            y = coordinate.y
+            if coordinate.system == CoordinateSystem.X_RIGHT_Y_DOWN:
+                y = -y
+
+            coordinate = Coordinate(x, y, system=CoordinateSystem.X_RIGHT_Y_UP)
+            data[coordinate] = item
+
+            min_x = min(min_x, x)
+            max_x = max(max_x, x)
+            min_y = min(min_y, y)
+            max_y = max(max_y, y)
+
+        width = max_x - min_x + 1
+        height = max_y - min_y + 1
 
         result = Grid[T](width, height)
-        for coordinate, item in self._data.items():
+        for coordinate, item in data.items():
             result[coordinate.x - min_x, max_y - coordinate.y] = item
 
         return result
@@ -75,7 +91,10 @@ class InfiniteGrid(Generic[T]):
         result = []
 
         for coordinate, item in self._data.items():
-            if item == test:
+            if callable(test):
+                if test(item):
+                    result.append(coordinate)
+            elif item == test:
                 result.append(coordinate)
 
         return result
