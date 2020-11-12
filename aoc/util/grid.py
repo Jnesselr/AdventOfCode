@@ -1,3 +1,4 @@
+from __future__ import annotations
 from typing import TypeVar, Generic
 
 from aoc.util.coordinate import Coordinate, CoordinateSystem
@@ -5,18 +6,53 @@ from aoc.util.coordinate import Coordinate, CoordinateSystem
 T = TypeVar('T')
 
 
-class Grid(Generic[T]):
-    def __init__(self, width, height):
-        self.width = width
-        self.height = height
+class InfiniteGrid(Generic[T]):
+    def __init__(self):
+        self._data = {}
+        
+    def clear(self):
         self._data = {}
 
-    def fill(self, item: T):
-        for row in range(self.height):
-            for col in range(self.width):
-                coordinate = Coordinate(col, row, system=CoordinateSystem.X_RIGHT_Y_DOWN)
+    @staticmethod
+    def _to_coordinate(position) -> Coordinate:
+        """
+        We make the assumption that the grid is x right y down if they're just passing in coordinates. However, the
+        user can use any coordinate system they want in an infinite grid.
+        """
+        if isinstance(position, tuple):
+            x, y = position
+            position = Coordinate(x, y, system=CoordinateSystem.X_RIGHT_Y_DOWN)
+        return position
 
-                self._data[coordinate] = item
+    @property
+    def max_x(self):
+        return max(map(lambda coord: coord.x, self._data.keys()))
+
+    @property
+    def min_x(self):
+        return min(map(lambda coord: coord.x, self._data.keys()))
+
+    @property
+    def max_y(self):
+        return max(map(lambda coord: coord.y, self._data.keys()))
+
+    @property
+    def min_y(self):
+        return min(map(lambda coord: coord.y, self._data.keys()))
+
+    # TODO This makes assumptions about the coordinate system. It assumes X_RIGHT_Y_UP.
+    def to_grid(self) -> Grid[T]:
+        min_x = self.min_x
+        max_y = self.max_y
+
+        width = self.max_x - min_x + 1
+        height = max_y - self.min_y + 1
+
+        result = Grid[T](width, height)
+        for coordinate, item in self._data.items():
+            result[coordinate.x - min_x, max_y - coordinate.y] = item
+
+        return result
 
     def __getitem__(self, position):
         position = self._to_coordinate(position)
@@ -35,21 +71,6 @@ class Grid(Generic[T]):
 
         return position in self._data
 
-    # Todo Add a key function for items that aren't characters
-    # Todo Add a default character to use if the coordinate isn't in there
-    def print(self, not_found=' '):
-        for row in range(self.height):
-            line = ""
-            for col in range(self.width):
-                coordinate = Coordinate(col, row, system=CoordinateSystem.X_RIGHT_Y_DOWN)
-
-                if coordinate in self._data:
-                    line += self._data[coordinate][0]
-                else:
-                    print(not_found)
-
-            print(line)
-
     def find(self, test):
         result = []
 
@@ -59,8 +80,36 @@ class Grid(Generic[T]):
 
         return result
 
-    def _to_coordinate(self, position) -> Coordinate:
-        if isinstance(position, tuple):
-            x, y = position
-            position = Coordinate(x, y, system=CoordinateSystem.X_RIGHT_Y_DOWN)
-        return position
+
+# TODO Add constraints for setting/getting position to be in bounds
+class Grid(InfiniteGrid[T]):
+    def __init__(self, width, height):
+        super().__init__()
+        self.width = width
+        self.height = height
+
+    def fill(self, item: T):
+        for row in range(self.height):
+            for col in range(self.width):
+                coordinate = Coordinate(col, row, system=CoordinateSystem.X_RIGHT_Y_DOWN)
+
+                self._data[coordinate] = item
+
+    # TODO Add a key function for items that aren't characters
+    # TODO Add a default character to use if the coordinate isn't in there
+    def print(self, key=None, not_found=' '):
+        if key is None:
+            def key(item):
+                return item[0]
+
+        for row in range(self.height):
+            line = ""
+            for col in range(self.width):
+                coordinate = Coordinate(col, row, system=CoordinateSystem.X_RIGHT_Y_DOWN)
+
+                if coordinate in self._data:
+                    line += key(self._data[coordinate])
+                else:
+                    line += not_found
+
+            print(line)

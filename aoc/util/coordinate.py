@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from enum import Enum
+from enum import Enum, auto
 
 
 class CoordinateSystem(Enum):
@@ -41,3 +41,56 @@ class Coordinate(object):
 
     def down(self):
         return Coordinate(self.x, self.y - self.system.dy)
+
+
+class TurtleDirection(Enum):
+    UP = auto()
+    DOWN = auto()
+    LEFT = auto()
+    RIGHT = auto()
+
+    def turn_right(self):
+        if self == self.UP:
+            return self.RIGHT
+        elif self == self.RIGHT:
+            return self.DOWN
+        elif self == self.DOWN:
+            return self.LEFT
+        elif self == self.LEFT:
+            return self.UP
+
+    def turn_left(self):
+        if self == self.UP:
+            return self.LEFT
+        elif self == self.LEFT:
+            return self.DOWN
+        elif self == self.DOWN:
+            return self.RIGHT
+        elif self == self.RIGHT:
+            return self.UP
+
+
+@dataclass(frozen=True)
+class Turtle(object):
+    direction: TurtleDirection
+    coordinate: Coordinate = Coordinate(0, 0)
+
+    def turn_left(self):
+        return Turtle(direction=self.direction.turn_left(), coordinate=self.coordinate)
+
+    def turn_right(self):
+        return Turtle(direction=self.direction.turn_right(), coordinate=self.coordinate)
+
+    def forward(self, count=1):
+        result = self.coordinate
+        for i in range(count):
+            if self.direction == TurtleDirection.UP:
+                result = result.up()
+            elif self.direction == TurtleDirection.LEFT:
+                result = result.left()
+            elif self.direction == TurtleDirection.DOWN:
+                result = result.down()
+            elif self.direction == TurtleDirection.RIGHT:
+                result = result.right()
+
+        return Turtle(direction=self.direction, coordinate=result)
