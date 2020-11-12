@@ -17,7 +17,7 @@ class Input(object):
 
     def lines(self):
         with open(str(self.file_path), 'r') as fh:
-            return list(fh.readlines())
+            return list(map(lambda line: line.strip(), fh.readlines()))
 
     def line(self):
         with open(str(self.file_path), 'r') as fh:
