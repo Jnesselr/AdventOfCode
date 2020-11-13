@@ -31,16 +31,16 @@ class Coordinate(object):
         return f"({self.x}, {self.y})"
 
     def right(self):
-        return Coordinate(self.x + self.system.dx, self.y)
+        return Coordinate(self.x + self.system.dx, self.y, system=self.system)
 
     def left(self):
-        return Coordinate(self.x - self.system.dx, self.y)
+        return Coordinate(self.x - self.system.dx, self.y, system=self.system)
 
     def up(self):
-        return Coordinate(self.x, self.y + self.system.dy)
+        return Coordinate(self.x, self.y + self.system.dy, system=self.system)
 
     def down(self):
-        return Coordinate(self.x, self.y - self.system.dy)
+        return Coordinate(self.x, self.y - self.system.dy, system=self.system)
 
     def neighbors(self):
         return [self.up(), self.down(), self.left(), self.right()]

@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import TypeVar, Generic
+from typing import TypeVar, Generic, Union, List, Callable
 
 from aoc.util.coordinate import Coordinate, CoordinateSystem
 from aoc.util.graph import Graph
@@ -105,7 +105,7 @@ class InfiniteGrid(Generic[T]):
 
         return position in self._data
 
-    def find(self, test):
+    def find(self, test: Union[T, Callable]) -> List[Coordinate]:
         result = []
 
         for coordinate, item in self._data.items():
@@ -124,6 +124,23 @@ class Grid(InfiniteGrid[T]):
         super().__init__()
         self.width = width
         self.height = height
+
+    @staticmethod
+    def from_str(lines: Union[str, List[str]]) -> Grid[str]:
+        if isinstance(lines, str):
+            lines = lines.rstrip('\n').split('\n')
+
+        width = len(max(lines, key=len))
+        height = len(lines)
+
+        grid: Grid[str] = Grid[str](width, height)
+
+        for row in range(len(lines)):
+            line = lines[row]
+            for col in range(len(line)):
+                grid[col, row] = line[col]
+
+        return grid
 
     def fill(self, item: T):
         for row in range(self.height):

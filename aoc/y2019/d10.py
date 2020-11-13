@@ -9,15 +9,8 @@ from aoc.util.inputs import Input
 class Y2019D10(object):
     def __init__(self, file_name):
         lines = Input(file_name).lines()
-        width = len(max(lines, key=len))
-        height = len(lines)
 
-        self.grid: Grid[str] = Grid[str](width, height)
-
-        for row in range(len(lines)):
-            line = lines[row]
-            for col in range(len(line)):
-                self.grid[col, row] = line[col]
+        self.grid: Grid[str] = Grid.from_str(lines)
 
         self.asteroids = self.grid.find('#')
         self.monitoring_station = None

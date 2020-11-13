@@ -70,6 +70,10 @@ class Intcode(object):
 
         self.run()
 
+    def input_str(self, value: str):
+        for character in value:
+            self.input(ord(character))
+
     def output(self):
         if not self.has_output:
             raise ValueError("No output available!")
@@ -81,6 +85,24 @@ class Intcode(object):
         self.run()
 
         return result
+
+    def output_str(self):
+        if not self.has_output:
+            raise ValueError("No output available!")
+
+        line = ""
+
+        while self.has_output:
+            output = self.output()
+            if output < 127:
+                line += chr(output)
+            else:
+                # This output wasn't an ascii character, so we probably shouldn't treat it like that.
+                # Queue it up for the next output command.
+                self.has_output = True
+                self._output_value = output
+                break
+        return line
 
     def _fetch(self) -> Instruction:
         code = self.ram[self.instruction_pointer]
