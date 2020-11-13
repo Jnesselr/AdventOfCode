@@ -42,12 +42,15 @@ class Coordinate(object):
     def down(self):
         return Coordinate(self.x, self.y - self.system.dy)
 
+    def neighbors(self):
+        return [self.up(), self.down(), self.left(), self.right()]
+
 
 class TurtleDirection(Enum):
-    UP = auto()
-    DOWN = auto()
-    LEFT = auto()
-    RIGHT = auto()
+    UP = NORTH = auto()
+    DOWN = SOUTH = auto()
+    LEFT = WEST = auto()
+    RIGHT = EAST = auto()
 
     def turn_right(self):
         if self == self.UP:
@@ -68,6 +71,26 @@ class TurtleDirection(Enum):
             return self.RIGHT
         elif self == self.RIGHT:
             return self.UP
+
+    def opposite(self):
+        if self == self.UP:
+            return self.DOWN
+        elif self == self.DOWN:
+            return self.UP
+        elif self == self.LEFT:
+            return self.RIGHT
+        elif self == self.RIGHT:
+            return self.LEFT
+
+    def move(self, coordinate):
+        if self == TurtleDirection.UP:
+            return coordinate.up()
+        elif self == TurtleDirection.LEFT:
+            return coordinate.left()
+        elif self == TurtleDirection.DOWN:
+            return coordinate.down()
+        elif self == TurtleDirection.RIGHT:
+            return coordinate.right()
 
 
 @dataclass(frozen=True)
@@ -82,15 +105,8 @@ class Turtle(object):
         return Turtle(direction=self.direction.turn_right(), coordinate=self.coordinate)
 
     def forward(self, count=1):
-        result = self.coordinate
+        coordinate = self.coordinate
         for i in range(count):
-            if self.direction == TurtleDirection.UP:
-                result = result.up()
-            elif self.direction == TurtleDirection.LEFT:
-                result = result.left()
-            elif self.direction == TurtleDirection.DOWN:
-                result = result.down()
-            elif self.direction == TurtleDirection.RIGHT:
-                result = result.right()
+            coordinate = self.direction.move(coordinate)
 
-        return Turtle(direction=self.direction, coordinate=result)
+        return Turtle(direction=self.direction, coordinate=coordinate)

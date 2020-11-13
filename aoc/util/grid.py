@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import TypeVar, Generic
 
 from aoc.util.coordinate import Coordinate, CoordinateSystem
+from aoc.util.graph import Graph
 
 T = TypeVar('T')
 
@@ -69,6 +70,23 @@ class InfiniteGrid(Generic[T]):
             result[coordinate.x - min_x, max_y - coordinate.y] = item
 
         return result
+
+    def to_graph(self, *walkable: T) -> Graph[T]:
+        walkable_coordinates = set()
+
+        for element in walkable:
+            walkable_coordinates = walkable_coordinates.union(self.find(element))
+
+        graph: Graph[T] = Graph[T]()
+
+        for coordinate in walkable_coordinates:
+            tests = coordinate.neighbors()
+
+            for test in tests:
+                if test in walkable_coordinates:
+                    graph.add(coordinate, test)
+
+        return graph
 
     def __getitem__(self, position):
         position = self._to_coordinate(position)
