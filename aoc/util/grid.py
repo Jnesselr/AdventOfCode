@@ -1,18 +1,39 @@
 from __future__ import annotations
-from typing import TypeVar, Generic, Union, List, Callable
+
+from dataclasses import dataclass
+from typing import TypeVar, Generic, Union, List, Callable, Dict, Optional
 
 from aoc.util.coordinate import Coordinate, CoordinateSystem
 from aoc.util.graph import Graph
+from aoc.util.queue import PriorityQueue
 
 T = TypeVar('T')
+
+
+@dataclass(frozen=True)
+class GridLocation(Generic[T]):
+    coordinate: Coordinate
+    item: T
 
 
 class InfiniteGrid(Generic[T]):
     def __init__(self):
         self._data = {}
-        
+
     def clear(self):
         self._data = {}
+
+    def copy(self) -> InfiniteGrid[T]:
+        result: InfiniteGrid[T] = InfiniteGrid[T]()
+        result._data = self._data.copy()
+        return result
+
+    def __iter__(self) -> Coordinate:
+        for data in self._data:
+            yield data
+
+    def items(self):
+        return self._data.items()
 
     @staticmethod
     def _to_coordinate(position) -> Coordinate:
@@ -71,24 +92,65 @@ class InfiniteGrid(Generic[T]):
 
         return result
 
-    def to_graph(self, *walkable: T) -> Graph[T]:
+    def to_graph(self, *walkable: T) -> Graph[Coordinate]:
         walkable_coordinates = set()
 
         for element in walkable:
             walkable_coordinates = walkable_coordinates.union(self.find(element))
 
-        graph: Graph[T] = Graph[T]()
+        graph: Graph[Coordinate] = Graph[Coordinate]()
 
+        coordinate: Coordinate
         for coordinate in walkable_coordinates:
             tests = coordinate.neighbors()
 
+            test: Coordinate
             for test in tests:
                 if test in walkable_coordinates:
                     graph.add(coordinate, test)
 
         return graph
 
-    def __getitem__(self, position):
+    def find_path(self, start: Coordinate, end: Coordinate, *walkable: T):
+        frontier: PriorityQueue[Coordinate] = PriorityQueue[Coordinate]()
+        frontier.push(start, 0)
+        came_from: Dict[Coordinate, Optional[Coordinate]] = {}
+        cost_so_far: Dict[Coordinate, int] = {}
+
+        came_from[start] = None
+        cost_so_far[start] = 0
+
+        while frontier:
+            current: Coordinate = frontier.pop()
+
+            if current == end:
+                source = end
+                result = []
+
+                while source is not None:
+                    result.insert(0, source)
+                    source = came_from[source]
+
+                return result
+
+            for neighbor in current.neighbors():
+                if neighbor not in self._data:
+                    continue
+
+                if self._data[neighbor] not in walkable:
+                    continue
+
+                new_cost = cost_so_far[current] + 1
+
+                if neighbor not in cost_so_far or new_cost < cost_so_far[neighbor]:
+                    cost_so_far[neighbor] = new_cost
+                    heuristic_cost = abs(end.y - neighbor.y) + (end.x - neighbor.x)
+                    priority = new_cost + heuristic_cost
+
+                    frontier.push(neighbor, priority)
+                    came_from[neighbor] = current
+
+    def __getitem__(self, position) -> Optional[T]:
         position = self._to_coordinate(position)
 
         if position in self._data:
@@ -124,6 +186,11 @@ class Grid(InfiniteGrid[T]):
         super().__init__()
         self.width = width
         self.height = height
+
+    def copy(self) -> Grid[T]:
+        result: Grid[T] = Grid[T](self.width, self.height)
+        result._data = self._data.copy()
+        return result
 
     @staticmethod
     def from_str(lines: Union[str, List[str]]) -> Grid[str]:
