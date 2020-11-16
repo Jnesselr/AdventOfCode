@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import List
 
 from aoc.util.inputs import Input
+from aoc.util.search import BinarySearch
 
 
 @dataclass(frozen=True)
@@ -43,19 +44,15 @@ class Y2019D14(object):
 
     def part2(self):
         max_ore = 1000000000000
-        start = 0
-        end = max_ore
 
-        while start + 1 < end:
-            current = (start + end) // 2
+        def test(current):
             ore_needed = self._get_ore_cost(current)
 
-            if ore_needed > max_ore:
-                end = current
-            elif ore_needed < max_ore:
-                start = current
+            return ore_needed <= max_ore
 
-        result = start
+        search = BinarySearch(test)
+
+        result = search.latest(1, lambda x: x*2)
 
         print("Part 2:", result)
 
