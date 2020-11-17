@@ -154,8 +154,7 @@ class Y2019D18(object):
                     filled_count += 1
 
 
-
 if __name__ == '__main__':
     code = Y2019D18("2019/18.txt")
-    code.part1()
+    # code.part1()
     code.part2()

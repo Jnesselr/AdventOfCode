@@ -1,10 +1,12 @@
+from __future__ import annotations
 from dataclasses import dataclass
-from typing import TypeVar, Generic, Dict, Optional
+from typing import TypeVar, Generic, Dict, Optional, Set, List, Callable
 
 from aoc.util.coordinate import Coordinate
 from aoc.util.queue import PriorityQueue
 
 T = TypeVar('T')
+U = TypeVar('U')
 
 
 @dataclass(frozen=True)
@@ -24,13 +26,20 @@ class CoordinateHeuristic(Heuristic[Coordinate]):
         return abs(end.y - start.y) + (end.x - start.x)
 
 
+@dataclass(frozen=True)
+class WithSteps(Generic[T]):
+    value: T
+    steps: int
+    path: List[T]
+
+
 class Graph(Generic[T]):
     def __init__(self, directional=False):
         self._edges = set()
         self._nodes = {}
         self._directional = directional
 
-    def add(self, start: T, end: T, weight = 1):
+    def add(self, start: T, end: T, weight=1):
         forward = Edge(start, end, weight)
         self._edges.add(forward)
         self._nodes.setdefault(start, set()).add(forward)
@@ -39,6 +48,12 @@ class Graph(Generic[T]):
             back = Edge(end, start, weight)
             self._edges.add(back)
             self._nodes.setdefault(end, set()).add(back)
+
+    def merge(self, graph: Graph[T]) -> Graph[T]:
+        for edge in graph._edges:
+            self.add(edge.start, edge.end, edge.weight)
+
+        return self
 
     def find_path(self, start: T, end: T, heuristic: Heuristic[T]):
         frontier: PriorityQueue[T] = PriorityQueue[T]()
@@ -75,3 +90,35 @@ class Graph(Generic[T]):
                     came_from[neighbor] = current
 
         return None
+
+    def flood_find(self, start: T, end: T):
+        queue: PriorityQueue[WithSteps[T]] = PriorityQueue[WithSteps[T]]()
+        seen: Set[T] = set()
+        queue.push(WithSteps(value=start, steps=0, path=[start]), 0)
+
+        while queue:
+            item: WithSteps[T] = queue.pop()
+
+            if item.value == end:
+                return item.path
+
+            for edge in self._nodes.setdefault(item.value, []):
+                neighbor: T = edge.end
+                if neighbor in seen:
+                    continue
+
+                seen.add(neighbor)
+                new_path = item.path.copy()
+                new_path.append(neighbor)
+                new_steps = item.steps + 1
+                queue.push(WithSteps(value=neighbor, steps=new_steps, path=new_path), new_steps)
+
+        return None
+
+    def map(self, func: Callable[[T], U]) -> Graph[U]:
+        new_graph: Graph[U] = Graph[U](directional=self._directional)
+
+        for edge in self._edges:
+            new_graph.add(func(edge.start), func(edge.end), edge.weight)
+
+        return new_graph

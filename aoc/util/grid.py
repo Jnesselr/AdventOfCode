@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TypeVar, Generic, Union, List, Callable, Dict, Optional
 
-from aoc.util.coordinate import Coordinate, CoordinateSystem
+from aoc.util.coordinate import Coordinate, CoordinateSystem, BoundingBox
 from aoc.util.graph import Graph
 from aoc.util.queue import PriorityQueue
 
@@ -191,6 +191,24 @@ class Grid(InfiniteGrid[T]):
         result: Grid[T] = Grid[T](self.width, self.height)
         result._data = self._data.copy()
         return result
+
+    def cut(self, bounding_box: BoundingBox) -> Grid[T]:
+        new_width = bounding_box.max_x - bounding_box.min_x + 1
+        new_height = bounding_box.max_y - bounding_box.min_y + 1
+        new_grid = Grid[T](new_width, new_height)
+
+        for row in range(new_height):
+            for col in range(new_width):
+                old_coordinate = Coordinate(
+                    col + bounding_box.min_x,
+                    row + bounding_box.min_y,
+                    system=CoordinateSystem.X_RIGHT_Y_DOWN
+                )
+                new_coordinate = Coordinate(col, row, system=CoordinateSystem.X_RIGHT_Y_DOWN)
+
+                new_grid[new_coordinate] = self[old_coordinate]
+
+        return new_grid
 
     @staticmethod
     def from_str(lines: Union[str, List[str]]) -> Grid[str]:

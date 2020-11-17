@@ -3,7 +3,7 @@ from aoc.util.inputs import Input
 
 class Y2019D1(object):
     def __init__(self, file_name):
-        self.input = list(map(lambda x: int(x.strip()), Input(file_name).lines()))
+        self.input = list(map(lambda x: int(x), Input(file_name).lines()))
 
     @staticmethod
     def _fuel_for_mass(mass):

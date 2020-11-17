@@ -1,3 +1,4 @@
+from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum, auto
 
@@ -44,6 +45,45 @@ class Coordinate(object):
 
     def neighbors(self):
         return [self.up(), self.down(), self.left(), self.right()]
+
+
+@dataclass(frozen=True)
+class BoundingBox(object):
+    min_x: int = 2**32
+    min_y: int = 2**32
+    max_x: int = -2**32
+    max_y: int = -2**32
+
+    def expand(self, *points: Coordinate) -> BoundingBox:
+        min_x: int = self.min_x
+        min_y: int = self.min_y
+        max_x: int = self.max_x
+        max_y: int = self.max_y
+
+        for point in points:
+            min_x = min(min_x, point.x)
+            max_x = max(max_x, point.x)
+            min_y = min(min_y, point.y)
+            max_y = max(max_y, point.y)
+
+        return BoundingBox(min_x, min_y, max_x, max_y)
+
+    def __contains__(self, item: Coordinate) -> bool:
+        if item.x < self.min_x or item.x > self.max_x:
+            return False
+
+        if item.y < self.min_y or item.y > self.max_y:
+            return False
+
+        return True
+
+    def shrink(self, amount=1) -> BoundingBox:
+        min_x = self.min_x + amount
+        min_y = self.min_y + amount
+        max_x = self.max_x - amount
+        max_y = self.max_y - amount
+
+        return BoundingBox(min_x, min_y, max_x, max_y)
 
 
 class TurtleDirection(Enum):

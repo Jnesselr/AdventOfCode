@@ -1,4 +1,3 @@
-from aoc.util.inputs import Input
 from aoc.util.intcode import Intcode
 
 
