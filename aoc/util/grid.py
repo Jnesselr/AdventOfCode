@@ -179,6 +179,21 @@ class InfiniteGrid(Generic[T]):
 
         return result
 
+    def neighbor_count(self, coordinate: Coordinate, test: Union[T, Callable]) -> int:
+        result = 0
+
+        for neighbor in coordinate.neighbors():
+            if neighbor not in self._data:
+                continue
+            item = self._data[neighbor]
+            if callable(test):
+                if test(item):
+                    result += 1
+            elif item == test:
+                result += 1
+
+        return result
+
 
 # TODO Add constraints for setting/getting position to be in bounds
 class Grid(InfiniteGrid[T]):
