@@ -11,6 +11,9 @@ class Input(object):
     def file_path(self):
         return self._input_dir / self.name
 
+    def exists(self) -> bool:
+        return self.file_path.exists()
+
     def touch(self):
         self.file_path.parent.mkdir(exist_ok=True, parents=True)
         self.file_path.touch(exist_ok=True)
