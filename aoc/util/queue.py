@@ -1,6 +1,6 @@
 import heapq
 from dataclasses import dataclass, field
-from typing import TypeVar, Generic, List
+from typing import TypeVar, Generic, List, Iterator
 
 T = TypeVar('T')
 

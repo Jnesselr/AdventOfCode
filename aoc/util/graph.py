@@ -122,3 +122,22 @@ class Graph(Generic[T]):
             new_graph.add(func(edge.start), func(edge.end), edge.weight)
 
         return new_graph
+
+    def sorted(self):
+        edges = self._edges.copy()
+        has_incoming = set(edge.end for edge in self._edges)
+        no_incoming = set(self._nodes.keys()) - has_incoming
+
+        while len(no_incoming) > 0:
+            next_element = min(no_incoming)
+            yield next_element
+            no_incoming.remove(next_element)
+
+            for edge in edges.copy():
+                if edge.start != next_element:
+                    continue
+
+                edges.remove(edge)
+
+                if len([x for x in edges if x.end == edge.end]) == 0:
+                    no_incoming.add(edge.end)
