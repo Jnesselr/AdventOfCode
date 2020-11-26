@@ -1,6 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum, auto
+from typing import Iterator, Tuple
 
 
 class CoordinateSystem(Enum):
@@ -46,6 +47,9 @@ class Coordinate(object):
     def neighbors(self):
         return [self.up(), self.down(), self.left(), self.right()]
 
+    def manhattan(self, other: Coordinate):
+        return abs(other.y - self.y) + abs(other.x - self.x)
+
 
 @dataclass(frozen=True)
 class BoundingBox(object):
@@ -76,6 +80,11 @@ class BoundingBox(object):
             return False
 
         return True
+
+    def __iter__(self) -> Iterator[Tuple[int, int]]:
+        for x in range(self.min_x, self.max_x + 1):
+            for y in range(self.min_y, self.max_y + 1):
+                yield x, y
 
     def shrink(self, amount=1) -> BoundingBox:
         min_x = self.min_x + amount

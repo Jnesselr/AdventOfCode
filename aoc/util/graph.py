@@ -23,7 +23,7 @@ class Heuristic(Generic[T]):
 
 class CoordinateHeuristic(Heuristic[Coordinate]):
     def __call__(self, start: Coordinate, end: Coordinate) -> int:
-        return abs(end.y - start.y) + (end.x - start.x)
+        return start.manhattan(end)
 
 
 @dataclass(frozen=True)

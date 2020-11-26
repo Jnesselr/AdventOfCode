@@ -167,6 +167,10 @@ class InfiniteGrid(Generic[T]):
 
         return position in self._data
 
+    @property
+    def bounding_box(self) -> BoundingBox:
+        return BoundingBox().expand(*self._data.keys())
+
     def find(self, test: Union[T, Callable]) -> List[Coordinate]:
         result = []
 
