@@ -62,12 +62,11 @@ class InfiniteGrid(Generic[T]):
     def min_y(self):
         return min(map(lambda coord: coord.y, self._data.keys()))
 
-    # TODO This makes assumptions about the coordinate system. It assumes X_RIGHT_Y_UP.
     def to_grid(self) -> Grid[T]:
         data = {}
 
         min_x = min_y = 4294967296
-        max_x = max_y = 0
+        max_x = max_y = -4294967296
 
         for coordinate, item in self._data.items():
             x = coordinate.x
