@@ -14,23 +14,33 @@ class Y2020D5(object):
         self.seats_ids = sorted(self.seats_ids)
 
     @staticmethod
-    def _get_seat(seat_instruction):
-        row_min = 0
-        row_max = 127
-        for i in seat_instruction[:7]:
-            if i == 'F':
-                row_max = (row_min + row_max) // 2
-            elif i == 'B':
-                row_min = (row_min + row_max + 1) // 2
-        col_min = 0
-        col_max = 7
-        for i in seat_instruction[7:]:
-            if i == 'L':
-                col_max = (col_min + col_max) // 2
-            elif i == 'R':
-                col_min = (col_min + col_max + 1) // 2
+    def _get_seat(seat_instruction: str):
+        # Credit to lizthegrey for this idea. Original code below
+        seat_instruction = seat_instruction \
+            .replace('B', '1') \
+            .replace('F', '0') \
+            .replace('R', '1') \
+            .replace('L', '0')
 
-        return row_min, col_min
+        return int(seat_instruction[:7],2), int(seat_instruction[7:],2)
+
+        # # Original code uses a binary search
+        # row_min = 0
+        # row_max = 127
+        # for i in seat_instruction[:7]:
+        #     if i == 'F':
+        #         row_max = (row_min + row_max) // 2
+        #     elif i == 'B':
+        #         row_min = (row_min + row_max + 1) // 2
+        # col_min = 0
+        # col_max = 7
+        # for i in seat_instruction[7:]:
+        #     if i == 'L':
+        #         col_max = (col_min + col_max) // 2
+        #     elif i == 'R':
+        #         col_min = (col_min + col_max + 1) // 2
+        #
+        # return row_min, col_min
 
     def part1(self):
         result = self.seats_ids[-1]
