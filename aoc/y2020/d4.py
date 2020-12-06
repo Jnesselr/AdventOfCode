@@ -15,6 +15,33 @@ class Passport(object):
     passport_id: Optional[str] = field(default=None)
     country_id: Optional[str] = field(default=None)
 
+    @staticmethod
+    def from_string(line: str):
+        current_passport = Passport()
+
+        segments = line.split(' ')
+        for element in segments:
+            key, value = element.split(':')
+
+            if key == 'byr':
+                current_passport.birth_year = int(value)
+            elif key == 'iyr':
+                current_passport.issue_year = int(value)
+            elif key == 'eyr':
+                current_passport.expiration_year = int(value)
+            elif key == 'hgt':
+                current_passport.height = value
+            elif key == 'hcl':
+                current_passport.hair_color = value
+            elif key == 'ecl':
+                current_passport.eye_color = value
+            elif key == 'pid':
+                current_passport.passport_id = value
+            elif key == 'cid':
+                current_passport.country_id = value
+
+        return current_passport
+
     @property
     def has_required_fields(self):
         return self.birth_year is not None and \
@@ -76,38 +103,7 @@ class Passport(object):
 
 class Y2020D4(object):
     def __init__(self, file_name):
-        lines = Input(file_name).lines()
-        self.passports = []
-        current_passport = Passport()
-
-        for line in lines:
-            if line == "":
-                self.passports.append(current_passport)
-                current_passport = Passport()
-                continue
-
-            segments = line.split(' ')
-            for element in segments:
-                key, value = element.split(':')
-
-                if key == 'byr':
-                    current_passport.birth_year = int(value)
-                elif key == 'iyr':
-                    current_passport.issue_year = int(value)
-                elif key == 'eyr':
-                    current_passport.expiration_year = int(value)
-                elif key == 'hgt':
-                    current_passport.height = value
-                elif key == 'hcl':
-                    current_passport.hair_color = value
-                elif key == 'ecl':
-                    current_passport.eye_color = value
-                elif key == 'pid':
-                    current_passport.passport_id = value
-                elif key == 'cid':
-                    current_passport.country_id = value
-
-        self.passports.append(current_passport)
+        self.passports = [Passport.from_string(" ".join(x)) for x in Input(file_name).grouped()]
 
     def part1(self):
         result = len([1 for passport in self.passports if passport.has_required_fields])

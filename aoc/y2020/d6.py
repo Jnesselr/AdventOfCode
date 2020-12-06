@@ -4,20 +4,7 @@ from aoc.util.inputs import Input
 
 class Y2020D6(object):
     def __init__(self, file_name):
-        lines = Input(file_name).lines()
-
-        self.groups = []
-
-        current_group = []
-        for line in lines:
-            if line == "":
-                self.groups.append(current_group)
-                current_group = []
-                continue
-
-            current_group.append(set(line))
-
-        self.groups.append(current_group)
+        self.groups = [[set(person) for person in group] for group in Input(file_name).grouped()]
 
     def part1(self):
         result = 0
