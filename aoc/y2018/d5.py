@@ -1,3 +1,4 @@
+from aoc.util import alphabet
 from aoc.util.inputs import Input
 
 
@@ -17,7 +18,7 @@ class Y2018D5(object):
     def part2(self):
         result = len(self.polymer)
 
-        for letter in 'abcdefghijklmnopqrstuvwxyz':
+        for letter in alphabet:
             polymer = self.polymer.replace(letter, '').replace(letter.upper(), '')
             polymer = self._reduce_polymer(polymer)
             result = min(result, len(polymer))

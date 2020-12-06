@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from queue import Queue
 from typing import FrozenSet, Dict, Set, Iterator
 
+from aoc.util import alphabet
 from aoc.util.coordinate import Coordinate
 from aoc.util.grid import Grid, GridLocation
 from aoc.util.inputs import Input
@@ -16,7 +17,7 @@ class SearchAttempt(object):
 
     @property
     def walkable(self):
-        all_keys = set('abcdefghijklmnopqrstuvwxyz')
+        all_keys = set(alphabet)
         return {'.'} | all_keys | set(key.upper() for key in self.keys)
 
 
