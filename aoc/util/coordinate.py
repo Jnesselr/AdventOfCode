@@ -47,6 +47,18 @@ class Coordinate(object):
     def neighbors(self):
         return [self.up(), self.down(), self.left(), self.right()]
 
+    def neighbors8(self):
+        return [
+            self.up(),
+            self.down(),
+            self.left(),
+            self.right(),
+            self.up().left(),
+            self.up().right(),
+            self.down().left(),
+            self.down().right(),
+        ]
+
     def manhattan(self, other: Coordinate):
         return abs(other.y - self.y) + abs(other.x - self.x)
 

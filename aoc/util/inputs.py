@@ -22,6 +22,9 @@ class Input(object):
         with open(str(self.file_path), 'r') as fh:
             return list(map(lambda line: line.rstrip('\n'), fh.readlines()))
 
+    def ints(self):
+        return [int(x.strip()) for x in self.lines()]
+
     def grouped(self):
         current_group = []
         groups = []
