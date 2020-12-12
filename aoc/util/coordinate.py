@@ -32,17 +32,17 @@ class Coordinate(object):
     def __repr__(self):
         return f"({self.x}, {self.y})"
 
-    def right(self):
-        return Coordinate(self.x + self.system.dx, self.y, system=self.system)
+    def right(self, count=1):
+        return Coordinate(self.x + self.system.dx * count, self.y, system=self.system)
 
-    def left(self):
-        return Coordinate(self.x - self.system.dx, self.y, system=self.system)
+    def left(self, count=1):
+        return Coordinate(self.x - self.system.dx * count, self.y, system=self.system)
 
-    def up(self):
-        return Coordinate(self.x, self.y + self.system.dy, system=self.system)
+    def up(self, count=1):
+        return Coordinate(self.x, self.y + self.system.dy * count, system=self.system)
 
-    def down(self):
-        return Coordinate(self.x, self.y - self.system.dy, system=self.system)
+    def down(self, count=1):
+        return Coordinate(self.x, self.y - self.system.dy * count, system=self.system)
 
     def neighbors(self):
         return [self.up(), self.down(), self.left(), self.right()]
@@ -61,6 +61,51 @@ class Coordinate(object):
 
     def manhattan(self, other: Coordinate):
         return abs(other.y - self.y) + abs(other.x - self.x)
+
+    def cw_around(self, other: Coordinate, count=1):
+        diff_coordinate = self - other
+        for i in range(count):
+            diff_coordinate = Coordinate(
+                x=diff_coordinate.y,
+                y=-diff_coordinate.x
+            )
+        return other + diff_coordinate
+
+    def ccw_around(self, other: Coordinate, count=1):
+        diff_coordinate = self - other
+        for i in range(count):
+            diff_coordinate = Coordinate(
+                x=-diff_coordinate.y,
+                y=diff_coordinate.x
+            )
+        return other + diff_coordinate
+
+    def __mul__(self, other):
+        if isinstance(other, Coordinate):
+            return Coordinate(
+                x=self.x * other.x,
+                y=self.y * other.y
+            )
+
+        return Coordinate(self.x * other, self.y * other)
+
+    def __add__(self, other):
+        if isinstance(other, Coordinate):
+            return Coordinate(
+                x=self.x + other.x,
+                y=self.y + other.y
+            )
+
+        return Coordinate(self.x + other, self.y + other)
+
+    def __sub__(self, other):
+        if isinstance(other, Coordinate):
+            return Coordinate(
+                x=self.x - other.x,
+                y=self.y - other.y
+            )
+
+        return Coordinate(self.x - other, self.y - other)
 
 
 @dataclass(frozen=True)
@@ -159,11 +204,31 @@ class Turtle(object):
     direction: TurtleDirection
     coordinate: Coordinate = Coordinate(0, 0)
 
-    def turn_left(self):
-        return Turtle(direction=self.direction.turn_left(), coordinate=self.coordinate)
+    def turn_left(self, count=1):
+        direction = self.direction
+        for i in range(count):
+            direction = direction.turn_left()
 
-    def turn_right(self):
-        return Turtle(direction=self.direction.turn_right(), coordinate=self.coordinate)
+        return Turtle(direction=direction, coordinate=self.coordinate)
+
+    def turn_right(self, count=1):
+        direction = self.direction
+        for i in range(count):
+            direction = direction.turn_right()
+
+        return Turtle(direction=direction, coordinate=self.coordinate)
+
+    def up(self, count=1):
+        return Turtle(direction=self.direction, coordinate=self.coordinate.up(count))
+
+    def down(self, count=1):
+        return Turtle(direction=self.direction, coordinate=self.coordinate.down(count))
+
+    def left(self, count=1):
+        return Turtle(direction=self.direction, coordinate=self.coordinate.left(count))
+
+    def right(self, count=1):
+        return Turtle(direction=self.direction, coordinate=self.coordinate.right(count))
 
     def forward(self, count=1):
         coordinate = self.coordinate
