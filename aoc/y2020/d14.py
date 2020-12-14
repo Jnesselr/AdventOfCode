@@ -6,6 +6,8 @@ from aoc.util.inputs import Input
 class Y2020D14(object):
     def __init__(self, file_name):
         self.lines = Input(file_name).lines()
+        self.mask_re = re.compile(r'mask = (.*)')
+        self.mem_re = re.compile(r'mem\[(\d+)] = (\d+)')
 
     def part1(self):
         memory = {}
@@ -13,15 +15,15 @@ class Y2020D14(object):
         zero_mask = 0
         one_mask = 0
         for line in self.lines:
-            if (matched := re.match(r'mask = (.*)', line)) is not None:
+            if (matched := self.mask_re.match(line)) is not None:
                 mask = matched.group(1)
                 zero_mask = int(mask.replace('X', '1'), 2)
                 one_mask = int(mask.replace('X', '0'), 2)
-            elif (matched := re.match(r'mem\[(\d+)] = (\d+)', line)) is not None:
+            elif (matched := self.mem_re.match(line)) is not None:
                 address = int(matched.group(1))
                 value = int(matched.group(2))
-                value &= zero_mask
-                value |= one_mask
+                value &= zero_mask  # 000111 & 01X01X -> 000011
+                value |= one_mask   # 000111 & 01X01X -> 010111
                 memory[address] = value
 
         result = sum(memory.values())
@@ -35,14 +37,14 @@ class Y2020D14(object):
         zero_mask = 0
         one_mask = 0
         for line in self.lines:
-            if (matched := re.match(r'mask = (.*)', line)) is not None:
+            if (matched := self.mask_re.match(line)) is not None:
                 mask = matched.group(1)
                 zero_mask = int(mask.replace('0', '1').replace('X', '0'), 2)
                 one_mask = int(mask.replace('X', '0'), 2)
-            elif (matched := re.match(r'mem\[(\d+)] = (\d+)', line)) is not None:
+            elif (matched := self.mem_re.match(line)) is not None:
                 address = int(matched.group(1))
-                address &= zero_mask
-                address |= one_mask
+                address &= zero_mask  # 000111 & 01X01X -> 000110
+                address |= one_mask   # 000111 & 01X01X -> 010111
                 value = int(matched.group(2))
 
                 addresses = {address}
