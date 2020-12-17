@@ -10,32 +10,26 @@ class Y2020D17(object):
         self.base_grid = Grid.from_str(Input(file_name).lines())
 
     def part1(self):
-        grid = set()
-
-        for coordinate, item in self.base_grid.items():
-            if item == '#':
-                grid.add((coordinate.x, coordinate.y, 0))
-
-        for i in range(6):
-            grid = self._mutate(grid)
-
-        result = len(grid)
+        result = self._get_sixth_cycle_count(3)
 
         print("Part 1:", result)
 
     def part2(self):
+        result = self._get_sixth_cycle_count(4)
+
+        print("Part 2:", result)
+
+    def _get_sixth_cycle_count(self, dimensions):
         grid = set()
 
         for coordinate, item in self.base_grid.items():
             if item == '#':
-                grid.add((coordinate.x, coordinate.y, 0, 0))
+                grid.add((coordinate.x, coordinate.y) + tuple([0]*(dimensions-2)))
 
         for i in range(6):
             grid = self._mutate(grid)
 
-        result = len(grid)
-
-        print("Part 2:", result)
+        return len(grid)
 
     def _mutate(self, grid):
         result = set()
