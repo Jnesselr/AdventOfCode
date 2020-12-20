@@ -49,6 +49,9 @@ class Graph(Generic[T]):
             self._edges.add(back)
             self._nodes.setdefault(end, set()).add(back)
 
+    def nodes_from(self, start: T) -> Set[T]:
+        return set(edge.end for edge in self._nodes[start])
+
     def merge(self, graph: Graph[T]) -> Graph[T]:
         for edge in graph._edges:
             self.add(edge.start, edge.end, edge.weight)

@@ -252,8 +252,6 @@ class Grid(InfiniteGrid[T]):
 
                 self._data[coordinate] = item
 
-    # TODO Add a key function for items that aren't characters
-    # TODO Add a default character to use if the coordinate isn't in there
     def print(self, key=None, not_found=' '):
         if key is None:
             def key(item):
@@ -270,3 +268,30 @@ class Grid(InfiniteGrid[T]):
                     line += not_found
 
             print(line)
+
+    def flip_horizontal(self) -> Grid[str]:
+        result: Grid[T] = Grid[T](self.width, self.height)
+
+        for row in range(self.height):
+            for col in range(self.width):
+                result[self.width - col - 1, row] = self[col, row]
+
+        return result
+
+    def flip_vertical(self) -> Grid[str]:
+        result: Grid[T] = Grid[T](self.width, self.height)
+
+        for row in range(self.height):
+            for col in range(self.width):
+                result[col, self.height - row - 1] = self[col, row]
+
+        return result
+
+    def rotate_right(self) -> Grid[str]:
+        result: Grid[T] = Grid[T](width=self.height, height=self.width)
+
+        for row in range(self.height):
+            for col in range(self.width):
+                result[self.height - row - 1, col] = self[col, row]
+
+        return result

@@ -93,7 +93,8 @@ class Coordinate(object):
         if isinstance(other, Coordinate):
             return Coordinate(
                 x=self.x + other.x,
-                y=self.y + other.y
+                y=self.y + other.y,
+                system=self.system
             )
 
         return Coordinate(self.x + other, self.y + other)
