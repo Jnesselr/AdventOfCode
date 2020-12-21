@@ -1,9 +1,10 @@
 import re
 from dataclasses import dataclass
 from functools import reduce
-from typing import Dict
+from typing import Dict, Set
 
 from aoc.util.inputs import Input
+from aoc.util.possibility_reducer import reduce_possibilities
 
 
 @dataclass
@@ -56,7 +57,7 @@ class Y2020D16(object):
     def part2(self):
         valid_tickets = [x for x in self.nearby_tickets if self._is_valid_ticket(x)]
         valid_tickets.append(self.my_ticket)
-        index_to_ticket_values: Dict[int, set] = {}
+        index_to_ticket_values: Dict[int, Set[int]] = {}
 
         ticket_length = len(self.my_ticket)
 
@@ -66,7 +67,7 @@ class Y2020D16(object):
                     index_to_ticket_values[index] = set()
                 index_to_ticket_values[index].add(ticket[index])
 
-        field_to_valid_indexes: Dict[str, set] = {}
+        field_to_valid_indexes: Dict[str, Set[int]] = {}
 
         for index in range(ticket_length):
             for field_name, field in self.fields.items():
@@ -76,17 +77,7 @@ class Y2020D16(object):
                 if all(field.is_valid(x) for x in index_to_ticket_values[index]):
                     field_to_valid_indexes[field_name].add(index)
 
-        field_to_index: Dict[str, int] = {}
-        while len(field_to_valid_indexes) > 0:
-            fields_with_one_possibility = [f for f, indexes in field_to_valid_indexes.items() if len(indexes) == 1]
-
-            for field in fields_with_one_possibility:
-                index = list(field_to_valid_indexes[field])[0]
-                field_to_index[field] = index
-                del field_to_valid_indexes[field]
-
-                for indexes in field_to_valid_indexes.values():
-                    indexes.remove(index)
+        field_to_index: Dict[str, int] = reduce_possibilities(field_to_valid_indexes)
 
         departure_fields = [x for f, x in field_to_index.items() if f.startswith("departure")]
         departure_values = [self.my_ticket[x] for x in departure_fields]
