@@ -32,8 +32,9 @@ class Input(object):
         groups = []
         for line in self.lines():
             if line == "":
-                groups.append(current_group)
-                current_group = []
+                if len(current_group) > 0:
+                    groups.append(current_group)
+                    current_group = []
                 continue
             current_group.append(line)
 
