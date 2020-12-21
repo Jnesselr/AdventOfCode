@@ -80,6 +80,10 @@ class Coordinate(object):
             )
         return other + diff_coordinate
 
+    def __lt__(self, other: Coordinate) -> bool:
+        # Things are normally left to right, top to bottom
+        return (self.x, self.y) < (other.x, other.y)
+
     def __mul__(self, other):
         if isinstance(other, Coordinate):
             return Coordinate(

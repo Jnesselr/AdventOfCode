@@ -1,5 +1,7 @@
 from pathlib import Path
 
+from aoc.util.grid import Grid
+
 
 class Input(object):
     _input_dir = Path("/Users/jnesselr/PycharmProjects/AdventOfCode/inputs")
@@ -42,3 +44,6 @@ class Input(object):
     def line(self):
         with open(str(self.file_path), 'r') as fh:
             return fh.readline()
+
+    def grid(self) -> Grid[str]:
+        return Grid.from_str(self.lines())
