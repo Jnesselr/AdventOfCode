@@ -82,7 +82,7 @@ class Coordinate(object):
 
     def __lt__(self, other: Coordinate) -> bool:
         # Things are normally left to right, top to bottom
-        return (self.x, self.y) < (other.x, other.y)
+        return (self.y, self.x) < (other.y, other.x)
 
     def __mul__(self, other):
         if isinstance(other, Coordinate):

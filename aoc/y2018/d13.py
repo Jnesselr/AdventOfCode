@@ -11,6 +11,7 @@ class Turn(Enum):
     STRAIGHT = 1
     RIGHT = 2
 
+
 class CartMadness(object):
     def __init__(self, grid: Grid[str]):
         self.grid: Grid[str] = grid
@@ -58,7 +59,7 @@ class CartMadness(object):
             # new_grid.print()
             # print()
 
-            #DEBUG
+            # DEBUG
 
             ordered_carts = sorted(list(self.carts), key=lambda x: x.coordinate)
             for cart in ordered_carts:

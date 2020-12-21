@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TypeVar, Generic, Union, List, Callable, Dict, Optional
+from typing import TypeVar, Generic, Union, List, Callable, Dict, Optional, Set
 
 from aoc.util.coordinate import Coordinate, CoordinateSystem, BoundingBox
 from aoc.util.graph import Graph
@@ -14,6 +14,12 @@ T = TypeVar('T')
 class GridLocation(Generic[T]):
     coordinate: Coordinate
     item: T
+
+
+@dataclass(frozen=True)
+class CoordinateSteps(object):
+    coordinate: Coordinate
+    steps: int
 
 
 class InfiniteGrid(Generic[T]):
@@ -148,6 +154,34 @@ class InfiniteGrid(Generic[T]):
 
                     frontier.push(neighbor, priority)
                     came_from[neighbor] = current
+
+    def flood_map(self, start, *walkable) -> Dict[Coordinate, int]:
+        result: Dict[Coordinate, int] = {}
+
+        if self._data[start] in walkable:
+            result[start] = 0
+
+        queue: PriorityQueue[CoordinateSteps] = PriorityQueue[CoordinateSteps]()
+        queue.push(CoordinateSteps(coordinate=start, steps=0), 0)
+
+        while queue:
+            item: CoordinateSteps = queue.pop()
+
+            new_steps = item.steps + 1
+            for neighbor in item.coordinate.neighbors():
+                if neighbor not in self._data:
+                    continue
+
+                if neighbor in result:
+                    continue
+
+                if self._data[neighbor] not in walkable:
+                    continue
+
+                queue.push(CoordinateSteps(neighbor, new_steps), new_steps)
+                result[neighbor] = new_steps
+
+        return result
 
     def __getitem__(self, position) -> Optional[T]:
         position = self._to_coordinate(position)
