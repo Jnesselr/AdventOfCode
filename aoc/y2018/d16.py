@@ -17,7 +17,7 @@ class Y2018D16(object):
 
     def __init__(self, file_name):
         groups = Input(file_name).grouped()
-        self.program_code = [[int(x) for x in line.split(' ')] for line in groups[-1]]
+        self.program_code = groups[-1]
         self.register_changes = []
 
         for group in groups[:-1]:
