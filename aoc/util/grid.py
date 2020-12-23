@@ -41,6 +41,9 @@ class InfiniteGrid(Generic[T]):
     def items(self):
         return self._data.items()
 
+    def values(self):
+        return self._data.values()
+
     @staticmethod
     def _to_coordinate(position) -> Coordinate:
         """
@@ -329,3 +332,22 @@ class Grid(InfiniteGrid[T]):
                 result[self.height - row - 1, col] = self[col, row]
 
         return result
+
+
+class MagicGrid(InfiniteGrid[T]):
+    def __init__(self, magic_function: Callable[[MagicGrid[T], Coordinate], T]):
+        super().__init__()
+        self._magic_function = magic_function
+
+    def __getitem__(self, position) -> Optional[T]:
+        position = self._to_coordinate(position)
+
+        if position in self._data:
+            return self._data[position]
+
+        result = self._magic_function(self, position)
+        if result is not None:
+            self._data[position] = result
+            return result
+
+        return None
