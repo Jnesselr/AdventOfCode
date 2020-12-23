@@ -293,6 +293,7 @@ class WatchVM(object):
         self.instructions: List[Instruction] = []
         self.ip_register: Optional[int] = None
         self.registers = [0] * 6
+        self._breakpoints = {}
 
         for instruction in instructions:
             if instruction[0] == '#':
@@ -315,6 +316,12 @@ class WatchVM(object):
     def reset(self):
         for i in range(len(self.registers)):
             self.registers[i] = 0
+        self._breakpoints = {}
+
+    def breakpoint(self, line_num: int, breakpoint_func):
+        if line_num not in self._breakpoints:
+            self._breakpoints[line_num] = []
+        self._breakpoints[line_num].append(breakpoint_func)
 
     def run(self):
         ip = 0
@@ -323,6 +330,11 @@ class WatchVM(object):
 
             if self.ip_register is not None:
                 self.registers[self.ip_register] = ip
+
+            if ip in self._breakpoints:
+                for breakpoint_func in self._breakpoints[ip]:
+                    if not breakpoint_func(self):
+                        return
 
             self.registers = instruction(self.registers)
 
