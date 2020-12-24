@@ -172,7 +172,6 @@ class Y2018D15(object):
         outcomes = {}
 
         def _elves_won(boost_value) -> bool:
-            print(f"Trying boost value {boost_value}")
             self.battle.reset()
             self.battle.boost_elves(boost_value)
             outcomes[boost_value + 3] = self.battle.run()
