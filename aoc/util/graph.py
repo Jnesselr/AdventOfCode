@@ -36,21 +36,33 @@ class WithSteps(Generic[T]):
 class Graph(Generic[T]):
     def __init__(self, directional=False):
         self._edges = set()
-        self._nodes = {}
+        self._forward_nodes = {}
+        self._back_nodes = {}
         self._directional = directional
 
     def add(self, start: T, end: T, weight=1):
         forward = Edge(start, end, weight)
         self._edges.add(forward)
-        self._nodes.setdefault(start, set()).add(forward)
+        self._forward_nodes.setdefault(start, set()).add(forward)
+        self._back_nodes.setdefault(end, set()).add(forward)
 
         if not self._directional:
             back = Edge(end, start, weight)
             self._edges.add(back)
-            self._nodes.setdefault(end, set()).add(back)
+            self._forward_nodes.setdefault(end, set()).add(back)
+            self._back_nodes.setdefault(start, set()).add(back)
+
+    def nodes_to(self, end: T) -> Set[T]:
+        if end not in self._back_nodes:
+            return set()
+
+        return set(edge.start for edge in self._back_nodes[end])
 
     def nodes_from(self, start: T) -> Set[T]:
-        return set(edge.end for edge in self._nodes[start])
+        if start not in self._forward_nodes:
+            return set()
+
+        return set(edge.end for edge in self._forward_nodes[start])
 
     def merge(self, graph: Graph[T]) -> Graph[T]:
         for edge in graph._edges:
@@ -81,7 +93,7 @@ class Graph(Generic[T]):
                 return result
 
             edge: Edge[T]
-            for edge in self._nodes.setdefault(current, []):
+            for edge in self._forward_nodes.setdefault(current, []):
                 neighbor = edge.end
                 new_cost = cost_so_far[current] + edge.weight
 
@@ -105,7 +117,7 @@ class Graph(Generic[T]):
             if item.value == end:
                 return item.path
 
-            for edge in self._nodes.setdefault(item.value, []):
+            for edge in self._forward_nodes.setdefault(item.value, []):
                 neighbor: T = edge.end
                 if neighbor in seen:
                     continue
@@ -129,7 +141,7 @@ class Graph(Generic[T]):
     def sorted(self):
         edges = self._edges.copy()
         has_incoming = set(edge.end for edge in self._edges)
-        no_incoming = set(self._nodes.keys()) - has_incoming
+        no_incoming = set(self._forward_nodes.keys()) - has_incoming
 
         while len(no_incoming) > 0:
             next_element = min(no_incoming)
