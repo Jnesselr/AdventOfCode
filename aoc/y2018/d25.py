@@ -30,6 +30,7 @@ class Constellation(object):
 
         return self
 
+
 class Y2018D25(object):
     def __init__(self, file_name):
         lines = Input(file_name).lines()
