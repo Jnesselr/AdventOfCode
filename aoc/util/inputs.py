@@ -20,12 +20,19 @@ class Input(object):
         self.file_path.parent.mkdir(exist_ok=True, parents=True)
         self.file_path.touch(exist_ok=True)
 
+    def line(self):
+        with open(str(self.file_path), 'r') as fh:
+            return fh.readline()
+
     def lines(self):
         with open(str(self.file_path), 'r') as fh:
             return list(map(lambda line: line.rstrip('\n'), fh.readlines()))
 
     def ints(self):
         return [int(x.strip()) for x in self.lines()]
+
+    def int(self):
+        return int(self.line())
 
     def grouped(self):
         current_group = []
@@ -41,10 +48,6 @@ class Input(object):
         groups.append(current_group)
 
         return groups
-
-    def line(self):
-        with open(str(self.file_path), 'r') as fh:
-            return fh.readline()
 
     def grid(self) -> Grid[str]:
         return Grid.from_str(self.lines())
