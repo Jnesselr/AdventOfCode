@@ -19,9 +19,11 @@ class KnotHash(object):
                 self._dense_hash[block] ^= self._circle[16 * block + index]
 
         self._hex_string = ""
+        self._bin_string = ""
 
         for h in self._dense_hash:
             self._hex_string += "{:02x}".format(h)
+            self._bin_string += "{:08b}".format(h)
 
     def _one_round(self):
         for length in self._data:
@@ -38,3 +40,7 @@ class KnotHash(object):
     @property
     def hex(self):
         return self._hex_string
+
+    @property
+    def bin(self):
+        return self._bin_string
