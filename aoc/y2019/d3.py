@@ -21,16 +21,7 @@ class Y2019D3(object):
             count = int(element[1:])
 
             for _ in range(count):
-                if direction == 'R':
-                    current = current.right()
-                elif direction == 'L':
-                    current = current.left()
-                elif direction == 'U':
-                    current = current.up()
-                elif direction == 'D':
-                    current = current.down()
-                else:
-                    raise ValueError()
+                current = current.move(direction)
                 coordinates.append(current)
 
         return coordinates

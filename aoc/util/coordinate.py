@@ -44,6 +44,18 @@ class Coordinate(object):
     def down(self, count=1):
         return Coordinate(self.x, self.y - self.system.dy * count, system=self.system)
 
+    def move(self, character):
+        if character == 'R':
+            return self.right()
+        elif character == 'L':
+            return self.left()
+        elif character == 'U':
+            return self.up()
+        elif character == 'D':
+            return self.down()
+        else:
+            raise ValueError()
+
     def neighbors(self):
         return [self.up(), self.down(), self.left(), self.right()]
 
