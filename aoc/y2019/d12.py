@@ -5,36 +5,7 @@ import re
 from dataclasses import dataclass
 
 from aoc.util.inputs import Input
-
-
-@dataclass(frozen=True)
-class Vector(object):
-    x: int = 0
-    y: int = 0
-    z: int = 0
-
-    def __add__(self, other: Vector):
-        return Vector(self.x + other.x, self.y + other.y, self.z + other.z)
-
-    def velocity_to(self, other: Vector):
-        x = 0
-        if other.x != self.x:
-            x = other.x - self.x
-            x = x // abs(x)
-        y = 0
-        if other.y != self.y:
-            y = other.y - self.y
-            y = y // abs(y)
-        z = 0
-        if other.z != self.z:
-            z = other.z - self.z
-            z = z // abs(z)
-
-        return Vector(x, y, z)
-
-    @property
-    def energy(self):
-        return abs(self.x) + abs(self.y) + abs(self.z)
+from aoc.util.vector import Vector
 
 
 class Y2019D12(object):
@@ -43,6 +14,8 @@ class Y2019D12(object):
         self.moons = []
         self.velocities = []
         self.reset()
+
+        self._origin_vector = Vector(0, 0, 0)
 
     def reset(self):
         self.moons = []
@@ -55,14 +28,17 @@ class Y2019D12(object):
             self.moons.append(Vector(x, y, z))
             self.velocities.append(Vector())
 
+    def _energy(self, vector: Vector):
+        return vector.distance(self._origin_vector)
+
     def part1(self):
         self.reset()
 
         for _ in range(1000):
             self._move_one_step()
 
-        potential = [moon.energy for moon in self.moons]
-        kinetic = [velocity.energy for velocity in self.velocities]
+        potential = [self._energy(moon) for moon in self.moons]
+        kinetic = [self._energy(velocity) for velocity in self.velocities]
 
         result = sum([p * k for p, k in zip(potential, kinetic)])
         print("Part 1:", result)
@@ -110,7 +86,7 @@ class Y2019D12(object):
     def _get_velocity(self, source_moon: Vector):
         velocity = Vector()
         for moon in self.moons:
-            velocity += source_moon.velocity_to(moon)
+            velocity += (moon - source_moon).signs()
 
         return velocity
 
