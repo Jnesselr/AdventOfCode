@@ -5,7 +5,7 @@ from aoc.util.grid import Grid
 
 
 class Input(object):
-    _input_dir = Path("/Users/jnesselr/PycharmProjects/AdventOfCode/inputs")
+    _input_dir = Path(__file__).parent.parent.parent / "inputs"
 
     def __init__(self, name):
         self.name = name
