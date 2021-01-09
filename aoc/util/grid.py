@@ -142,10 +142,10 @@ class InfiniteGrid(Generic[T]):
                 return result
 
             for neighbor in current.neighbors():
-                if neighbor not in self._data:
+                if neighbor not in self:
                     continue
 
-                if self._data[neighbor] not in walkable:
+                if self[neighbor] not in walkable:
                     continue
 
                 new_cost = cost_so_far[current] + 1
@@ -158,10 +158,14 @@ class InfiniteGrid(Generic[T]):
                     frontier.push(neighbor, priority)
                     came_from[neighbor] = current
 
-    def flood_map(self, start, *walkable) -> Dict[Coordinate, int]:
+    def flood_map(self,
+                  start: Coordinate,
+                  *walkable,
+                  max_value: Optional[int] = None
+                  ) -> Dict[Coordinate, int]:
         result: Dict[Coordinate, int] = {}
 
-        if self._data[start] in walkable:
+        if self[start] in walkable:
             result[start] = 0
 
         queue: PriorityQueue[CoordinateSteps] = PriorityQueue[CoordinateSteps]()
@@ -171,14 +175,17 @@ class InfiniteGrid(Generic[T]):
             item: CoordinateSteps = queue.pop()
 
             new_steps = item.steps + 1
+            if max_value is not None and new_steps > max_value:
+                continue
+
             for neighbor in item.coordinate.neighbors():
-                if neighbor not in self._data:
+                if neighbor not in self:
                     continue
 
                 if neighbor in result:
                     continue
 
-                if self._data[neighbor] not in walkable:
+                if self[neighbor] not in walkable:
                     continue
 
                 queue.push(CoordinateSteps(neighbor, new_steps), new_steps)
@@ -189,7 +196,7 @@ class InfiniteGrid(Generic[T]):
     def __getitem__(self, position) -> Optional[T]:
         position = self._to_coordinate(position)
 
-        if position in self._data:
+        if position in self:
             return self._data[position]
         return None
 
@@ -223,7 +230,7 @@ class InfiniteGrid(Generic[T]):
         result = 0
 
         for neighbor in coordinate.neighbors():
-            if neighbor not in self._data:
+            if neighbor not in self:
                 continue
             item = self._data[neighbor]
             if callable(test):
@@ -351,3 +358,10 @@ class MagicGrid(InfiniteGrid[T]):
             return result
 
         return None
+
+    def __contains__(self, position):
+        position = self._to_coordinate(position)
+
+        result = self._magic_function(self, position)
+
+        return result is not None
