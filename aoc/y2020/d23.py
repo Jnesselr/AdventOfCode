@@ -1,46 +1,5 @@
-from __future__ import annotations
-
-from typing import Optional
-
 from aoc.util.inputs import Input
-
-
-class LinkedListNode(object):
-    def __init__(self, value: int):
-        self.value = value
-        self.prev: LinkedListNode = self
-        self.next: LinkedListNode = self
-
-    def append(self, value: int) -> LinkedListNode:
-        next_node = self.next
-        new_node = LinkedListNode(value)
-
-        new_node.next = next_node
-        next_node.prev = new_node
-
-        new_node.prev = self
-        self.next = new_node
-
-        return new_node
-
-    def remove(self) -> None:
-        prev_node = self.prev
-        next_node = self.next
-
-        prev_node.next = next_node
-        next_node.prev = prev_node
-
-    def find(self, value) -> Optional[LinkedListNode]:
-        if self.value == value:
-            return value
-
-        node = self.next
-        while node != self:
-            if node.value == value:
-                return node
-            node = node.next
-
-        return None
+from aoc.util.linked_list import LinkedListNode
 
 
 class CrabGame(object):
@@ -51,7 +10,7 @@ class CrabGame(object):
         self.highest_value = 0
         value = int(line[0])
         self.highest_value = max(value, self.highest_value)
-        self.current_node = LinkedListNode(value)
+        self.current_node = LinkedListNode[int](value)
         self._lookup[value] = self.current_node
 
         node = self.current_node
