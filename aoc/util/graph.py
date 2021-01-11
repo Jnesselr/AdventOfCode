@@ -64,6 +64,12 @@ class Graph(Generic[T]):
 
         return set(edge.end for edge in self._forward_nodes[start])
 
+    def edges_from(self, start: T) -> Set[Edge[T]]:
+        if start not in self._forward_nodes:
+            return set()
+
+        return set(self._forward_nodes[start])
+
     def merge(self, graph: Graph[T]) -> Graph[T]:
         for edge in graph._edges:
             self.add(edge.start, edge.end, edge.weight)
