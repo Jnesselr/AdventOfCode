@@ -88,7 +88,7 @@ class Skip(Instruction):
 
 class Toggle(Instruction):
     def __init__(self, x: Union[int, str]):
-        self.x = int(x) if x.isnumeric() else x
+        self.x = x if isinstance(x, str) and x.isalpha() else int(x)
 
     def __call__(self, assembunny: Assembunny) -> None:
         value = self._register_or_value(self.x, assembunny.registers)
@@ -119,6 +119,18 @@ class Toggle(Instruction):
         return f"toggle {self.x}"
 
 
+class Out(Instruction):
+    def __init__(self, x: Union[int, str]):
+        self.x = x if isinstance(x, str) and x.isalpha() else int(x)
+
+    def __call__(self, assembunny: Assembunny) -> None:
+        assembunny.instruction_pointer += 1
+        print(self._register_or_value(self.x, assembunny.registers), end='')
+
+    def __str__(self):
+        return f"out {self.x}"
+
+
 class Assembunny(object):
     def __init__(self, lines):
         self._lines = lines
@@ -142,6 +154,8 @@ class Assembunny(object):
                 self.instructions.append(JumpNotZero(matched.group(1), matched.group(2)))
             elif (matched := re.match(r'tgl (-?\d+|\w+)', line)) is not None:
                 self.instructions.append(Toggle(matched.group(1)))
+            elif (matched := re.match(r'out (-?\d+|\w+)', line)) is not None:
+                self.instructions.append(Out(matched.group(1)))
             else:
                 raise ValueError(f"Could not parse: {line}")
 
