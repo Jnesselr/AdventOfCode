@@ -45,13 +45,13 @@ class Coordinate(object):
         return Coordinate(self.x, self.y - self.system.dy * count, system=self.system)
 
     def move(self, character):
-        if character == 'R':
+        if character in 'R>':
             return self.right()
-        elif character == 'L':
+        elif character in 'L<':
             return self.left()
-        elif character == 'U':
+        elif character in 'U^':
             return self.up()
-        elif character == 'D':
+        elif character in 'DvV':
             return self.down()
         else:
             raise ValueError()
