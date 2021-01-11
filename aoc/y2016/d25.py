@@ -11,7 +11,7 @@ class Y2016D25(object):
         result = 180
 
         self.assembunny.registers[0] = result
-        # Only run if you want to prove it produces the correct symbol
+        # Only run if you want to prove it produces the correct signal
         # self.assembunny.run()
 
         print("Part 1:", result)
