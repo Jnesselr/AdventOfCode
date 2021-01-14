@@ -1,18 +1,6 @@
 import re
-from dataclasses import dataclass
-from queue import Queue
-from typing import FrozenSet
-
 from aoc.util.graph import Graph
 from aoc.util.inputs import Input
-from aoc.util.queue import PriorityQueue
-
-
-@dataclass(frozen=True)
-class SearchAttempt(object):
-    distance: int
-    current: str
-    visited: FrozenSet[str]
 
 
 class Y2015D9(object):
@@ -34,53 +22,12 @@ class Y2015D9(object):
         self.all_cities = frozenset(all_cities)
 
     def part1(self):
-        queue: PriorityQueue[SearchAttempt] = PriorityQueue[SearchAttempt]()
-        for city in self.all_cities:
-            queue.push(SearchAttempt(0, city, frozenset({city})), 0)
-
-        result = 0
-
-        while not queue.empty:
-            search: SearchAttempt = queue.pop()
-
-            if search.visited == self.all_cities:
-                result = search.distance
-                break
-
-            for edge in self.graph.edges_from(search.current):
-                if edge.end in search.visited:
-                    continue
-
-                new_distance = search.distance + edge.weight
-                new_visited = frozenset(search.visited.union({edge.end}))
-                new_search = SearchAttempt(new_distance, edge.end, new_visited)
-
-                queue.push(new_search, new_distance)
+        result = self.graph.tsp()
 
         print("Part 1:", result)
 
     def part2(self):
-        queue = Queue()
-        for city in self.all_cities:
-            queue.put(SearchAttempt(0, city, frozenset({city})))
-
-        result = 0
-
-        while not queue.empty():
-            search: SearchAttempt = queue.get()
-
-            if search.visited == self.all_cities:
-                result = max(search.distance, result)
-
-            for edge in self.graph.edges_from(search.current):
-                if edge.end in search.visited:
-                    continue
-
-                new_distance = search.distance + edge.weight
-                new_visited = frozenset(search.visited.union({edge.end}))
-                new_search = SearchAttempt(new_distance, edge.end, new_visited)
-
-                queue.put(new_search)
+        result = self.graph.highest_tsp()
 
         print("Part 2:", result)
 

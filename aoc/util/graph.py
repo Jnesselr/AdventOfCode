@@ -1,6 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import TypeVar, Generic, Dict, Optional, Set, List, Callable
+from queue import Queue
+from typing import TypeVar, Generic, Dict, Optional, Set, List, Callable, FrozenSet
 
 from aoc.util.coordinate import Coordinate
 from aoc.util.queue import PriorityQueue
@@ -33,14 +34,26 @@ class WithSteps(Generic[T]):
     path: List[T]
 
 
+@dataclass(frozen=True)
+class SearchAttempt(object):
+    total_weight: int
+    start: str
+    current: str
+    visited: FrozenSet[str]
+
+
 class Graph(Generic[T]):
     def __init__(self, directional=False):
+        self._all_nodes = set()
         self._edges = set()
         self._forward_nodes = {}
         self._back_nodes = {}
         self._directional = directional
 
     def add(self, start: T, end: T, weight=1):
+        self._all_nodes.add(start)
+        self._all_nodes.add(end)
+
         forward = Edge(start, end, weight)
         self._edges.add(forward)
         self._forward_nodes.setdefault(start, set()).add(forward)
@@ -162,3 +175,64 @@ class Graph(Generic[T]):
 
                 if len([x for x in edges if x.end == edge.end]) == 0:
                     no_incoming.add(edge.end)
+
+    def tsp(self) -> int:
+        queue: PriorityQueue[SearchAttempt] = PriorityQueue[SearchAttempt]()
+
+        for node in self._all_nodes:
+            queue.push(SearchAttempt(0, node, node, frozenset({node})), 0)
+
+        while not queue.empty:
+            search: SearchAttempt = queue.pop()
+
+            if search.visited == self._all_nodes:
+                return search.total_weight
+
+            for edge in self.edges_from(search.current):
+                if edge.end in search.visited:
+                    continue
+
+                new_distance = search.total_weight + edge.weight
+                new_visited = frozenset(search.visited.union({edge.end}))
+                new_search = SearchAttempt(new_distance, search.start, edge.end, new_visited)
+
+                queue.push(new_search, new_distance)
+
+    def highest_tsp(self, loop=False):
+        queue = Queue()
+
+        starting_nodes = list(self._all_nodes)
+
+        # If this is a loop, then just pick one to start with
+        if loop:
+            starting_nodes = [starting_nodes.pop()]
+
+        for node in starting_nodes:
+            queue.put(SearchAttempt(0, node, node, frozenset({node})))
+
+        result = 0
+
+        while not queue.empty():
+            search: SearchAttempt = queue.get()
+
+            if search.visited == self._all_nodes:
+                if loop and search.start != search.current:
+                    edges = [e for e in self.edges_from(search.current) if e.end == search.start]
+
+                    if len(edges) > 0:
+                        weight = edges.pop().weight
+                        result = max(search.total_weight + weight, result)
+                else:
+                    result = max(search.total_weight, result)
+
+            for edge in self.edges_from(search.current):
+                if edge.end in search.visited:
+                    continue
+
+                new_distance = search.total_weight + edge.weight
+                new_visited = frozenset(search.visited.union({edge.end}))
+                new_search = SearchAttempt(new_distance, search.start, edge.end, new_visited)
+
+                queue.put(new_search)
+
+        return result
