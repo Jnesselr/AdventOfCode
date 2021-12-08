@@ -35,6 +35,9 @@ class Input(object):
     def int(self) -> int:
         return int(self.line())
 
+    def int_line(self) -> List[int]:
+        return [int(x) for x in self.line().split(',')]
+
     def grouped(self):
         current_group = []
         groups = []
