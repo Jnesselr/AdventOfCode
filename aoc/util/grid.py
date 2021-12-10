@@ -8,6 +8,7 @@ from aoc.util.graph import Graph
 from aoc.util.queue import PriorityQueue
 
 T = TypeVar('T')
+U = TypeVar('U')
 
 
 @dataclass(frozen=True)
@@ -32,6 +33,14 @@ class InfiniteGrid(Generic[T]):
     def copy(self) -> InfiniteGrid[T]:
         result: InfiniteGrid[T] = InfiniteGrid[T]()
         result._data = self._data.copy()
+        return result
+
+    def map(self, func: Callable[[T], U]) -> InfiniteGrid[U]:
+        result = InfiniteGrid[U]()
+
+        for coordinate, value in self._data.items():
+            result[coordinate] = func(value)
+
         return result
 
     def __iter__(self) -> Coordinate:
