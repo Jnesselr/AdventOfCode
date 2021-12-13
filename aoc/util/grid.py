@@ -61,7 +61,7 @@ class InfiniteGrid(Generic[T]):
         """
         if isinstance(position, tuple):
             x, y = position
-            position = Coordinate(x, y, system=CoordinateSystem.X_RIGHT_Y_DOWN)
+            position = Coordinate(int(x), int(y), system=CoordinateSystem.X_RIGHT_Y_DOWN)
         return position
 
     @property
