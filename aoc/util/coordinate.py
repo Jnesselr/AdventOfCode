@@ -127,10 +127,30 @@ class Coordinate(object):
 
 @dataclass(frozen=True)
 class BoundingBox(object):
-    min_x: int = 2**32
-    min_y: int = 2**32
-    max_x: int = -2**32
-    max_y: int = -2**32
+    min_x: int = 2 ** 32
+    min_y: int = 2 ** 32
+    max_x: int = -2 ** 32
+    max_y: int = -2 ** 32
+
+    def expand_x(self, *x: int) -> BoundingBox:
+        min_x: int = self.min_x
+        max_x: int = self.max_x
+
+        for value in x:
+            min_x = min(min_x, value)
+            max_x = max(max_x, value)
+
+        return BoundingBox(min_x, self.min_y, max_x, self.max_y)
+
+    def expand_y(self, *y: int) -> BoundingBox:
+        min_y: int = self.min_y
+        max_y: int = self.max_y
+
+        for value in y:
+            min_y = min(min_y, value)
+            max_y = max(max_y, value)
+
+        return BoundingBox(self.min_x, min_y, self.max_x, max_y)
 
     def expand(self, *points: Coordinate) -> BoundingBox:
         min_x: int = self.min_x
