@@ -32,19 +32,19 @@ class Coordinate(object):
     def __repr__(self):
         return f"({self.x}, {self.y})"
 
-    def right(self, count=1):
+    def right(self, count=1) -> Coordinate:
         return Coordinate(self.x + self.system.dx * count, self.y, system=self.system)
 
-    def left(self, count=1):
+    def left(self, count=1) -> Coordinate:
         return Coordinate(self.x - self.system.dx * count, self.y, system=self.system)
 
-    def up(self, count=1):
+    def up(self, count=1) -> Coordinate:
         return Coordinate(self.x, self.y + self.system.dy * count, system=self.system)
 
-    def down(self, count=1):
+    def down(self, count=1) -> Coordinate:
         return Coordinate(self.x, self.y - self.system.dy * count, system=self.system)
 
-    def move(self, character):
+    def move(self, character) -> Coordinate:
         if character in 'R>':
             return self.right()
         elif character in 'L<':
