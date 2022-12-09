@@ -25,7 +25,7 @@ class CoordinateSteps(object):
 
 class InfiniteGrid(Generic[T]):
     def __init__(self):
-        self._data = {}
+        self._data: Dict[Coordinate, T] = {}
 
     def clear(self):
         self._data = {}
@@ -46,6 +46,9 @@ class InfiniteGrid(Generic[T]):
     def __iter__(self) -> Coordinate:
         for data in self._data:
             yield data
+
+    def keys(self):
+        return self._data.keys()
 
     def items(self):
         return self._data.items()
