@@ -50,6 +50,10 @@ class Graph(Generic[T]):
         self._back_nodes = {}
         self._directional = directional
 
+    @property
+    def all_nodes(self) -> Set[T]:
+        return set(self._all_nodes)
+
     def add(self, start: T, end: T, weight=1):
         self._all_nodes.add(start)
         self._all_nodes.add(end)
@@ -65,6 +69,34 @@ class Graph(Generic[T]):
             self._forward_nodes.setdefault(end, set()).add(back)
             self._back_nodes.setdefault(start, set()).add(back)
 
+    def remove(self, node: T):
+        if node in self._all_nodes:
+            self._all_nodes.remove(node)
+
+        edges_to_murder = set()
+        if node in self._forward_nodes:
+            for edge in self._forward_nodes[node]:
+                edges_to_murder.add(edge)
+
+        if node in self._back_nodes:
+            for edge in self._back_nodes[node]:
+                edges_to_murder.add(edge)
+
+        for edge in edges_to_murder:
+            if edge.start in self._forward_nodes:
+                if edge in self._forward_nodes[edge.start]:
+                    self._forward_nodes[edge.start].remove(edge)
+            if edge.start in self._back_nodes:
+                if edge in self._back_nodes[edge.start]:
+                    self._back_nodes[edge.start].remove(edge)
+
+            if edge.end in self._forward_nodes:
+                if edge in self._forward_nodes[edge.end]:
+                    self._forward_nodes[edge.end].remove(edge)
+            if edge.end in self._back_nodes:
+                if edge in self._back_nodes[edge.end]:
+                    self._back_nodes[edge.end].remove(edge)
+
     def nodes_to(self, end: T) -> Set[T]:
         if end not in self._back_nodes:
             return set()
@@ -76,6 +108,12 @@ class Graph(Generic[T]):
             return set()
 
         return set(edge.end for edge in self._forward_nodes[start])
+
+    def edges_to(self, end: T) -> Set[Edge[T]]:
+        if end not in self._back_nodes:
+            return set()
+
+        return set(self._back_nodes[end])
 
     def edges_from(self, start: T) -> Set[Edge[T]]:
         if start not in self._forward_nodes:
@@ -236,3 +274,62 @@ class Graph(Generic[T]):
                 queue.put(new_search)
 
         return result
+
+    def compress(self, *what_to_keep: T):
+        what_to_keep = set(what_to_keep)
+        for node in set(self._all_nodes):
+            if node in what_to_keep:
+                continue
+
+            edges_to = self.edges_to(node)
+            edges_from = self.edges_from(node)
+
+            edge_to: Edge[T]
+            for edge_to in edges_to:
+                edge_from: Edge[T]
+                for edge_from in edges_from:
+                    if edge_to.start == edge_from.end:
+                        continue
+                    self.add(edge_to.start, edge_from.end, weight=edge_to.weight + edge_from.weight)
+
+            self.remove(node)
+
+    def interconnect(self):
+        @dataclass
+        class InterconnectResult(Generic[T]):
+            node: T
+            current_weight: int
+
+        for node in set(self._all_nodes):
+            q = Queue()
+            weight_map: Dict[str, int] = {
+                node: 0
+            }
+            for edge in self.edges_from(node):
+                q.put(InterconnectResult(
+                    node=edge.end,
+                    current_weight=edge.weight
+                ))
+                weight_map[edge.end] = edge.weight
+
+            while not q.empty():
+                result: InterconnectResult = q.get()
+                for edge in self.edges_from(result.node):
+                    new_weight = result.current_weight + edge.weight
+                    if edge.end in weight_map and weight_map[edge.end] <= new_weight:
+                        continue
+
+                    weight_map[edge.end] = new_weight
+                    q.put(InterconnectResult(
+                        node=edge.end,
+                        current_weight=new_weight
+                    ))
+
+            nodes_from = self.nodes_from(node)
+            for end, weight in weight_map.items():
+                if end == node:
+                    continue  # This is us
+
+                if end in nodes_from:
+                    continue  # Already exists as a direct connection
+                self.add(node, end, weight)
