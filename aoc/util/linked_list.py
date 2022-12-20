@@ -41,3 +41,40 @@ class LinkedListNode(Generic[T]):
             node = node.next
 
         return None
+
+    def swap_with_right(self):
+        right_node = self.next
+        left_node = self.prev
+
+        self.next = right_node.next
+        self.next.prev = self
+
+        self.prev = right_node
+        self.prev.next = self
+
+        right_node.prev = left_node
+        left_node.next = right_node
+
+    def swap_with_left(self):
+        right_node = self.next
+        left_node = self.prev
+
+        self.prev = left_node.prev
+        self.prev.next = self
+
+        self.next = left_node
+        self.next.prev = self
+
+        right_node.prev = left_node
+        left_node.next = right_node
+
+    def skip(self, amount: int) -> LinkedListNode[T]:
+        result = self
+
+        for _ in range(abs(amount)):
+            if amount > 0:
+                result = result.next
+            else:
+                result = result.prev
+
+        return result
