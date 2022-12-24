@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TypeVar, Generic, Union, List, Callable, Dict, Optional, Set
+from typing import TypeVar, Generic, Union, List, Callable, Dict, Optional, Set, Iterator
 
 from aoc.util.coordinate import Coordinate, CoordinateSystem, BoundingBox
 from aoc.util.graph import Graph
@@ -43,7 +43,7 @@ class InfiniteGrid(Generic[T]):
 
         return result
 
-    def __iter__(self) -> Coordinate:
+    def __iter__(self) -> Iterator[Coordinate]:
         for data in self._data:
             yield data
 
