@@ -83,6 +83,7 @@ class Graph(Generic[T]):
                 edges_to_murder.add(edge)
 
         for edge in edges_to_murder:
+            self._edges.remove(edge)
             if edge.start in self._forward_nodes:
                 if edge in self._forward_nodes[edge.start]:
                     self._forward_nodes[edge.start].remove(edge)
@@ -284,15 +285,27 @@ class Graph(Generic[T]):
             edges_to = self.edges_to(node)
             edges_from = self.edges_from(node)
 
+            # If we have duplicate edges, pick the lowest weighted one
+            lowest_weight: Dict[tuple[T, T], int] = {}
+
             edge_to: Edge[T]
             for edge_to in edges_to:
                 edge_from: Edge[T]
                 for edge_from in edges_from:
                     if edge_to.start == edge_from.end:
                         continue
-                    self.add(edge_to.start, edge_from.end, weight=edge_to.weight + edge_from.weight)
+                    new_weight = edge_to.weight + edge_from.weight
+                    edge_tuple = edge_to.start, edge_from.end
+
+                    if edge_tuple not in lowest_weight or lowest_weight[edge_tuple] > new_weight:
+                        lowest_weight[edge_tuple] = new_weight
+
+            for edge_tuple, weight in lowest_weight.items():
+                start, end = edge_tuple
+                self.add(start, end, weight=weight)
 
             self.remove(node)
+        print("Done")
 
     def interconnect(self):
         @dataclass
