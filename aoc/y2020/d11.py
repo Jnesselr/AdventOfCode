@@ -1,4 +1,4 @@
-from typing import FrozenSet, Set
+from typing import FrozenSet, Set, Callable
 
 from aoc.util.coordinate import Coordinate
 from aoc.util.grid import Grid
@@ -83,7 +83,8 @@ class Y2020D11(object):
         return new_grid
 
     @staticmethod
-    def _hits_occupied_seat(grid: Grid[str], starting_coordinate: Coordinate, change) -> bool:
+    def _hits_occupied_seat(grid: Grid[str], starting_coordinate: Coordinate,
+                            change: Callable[[Coordinate], Coordinate]) -> bool:
         coordinate = change(starting_coordinate)
 
         while grid[coordinate] == '.':

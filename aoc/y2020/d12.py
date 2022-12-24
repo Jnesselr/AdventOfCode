@@ -13,13 +13,13 @@ class Y2020D12(object):
             value = int(line[1:])
             command = line[0]
             if command == "N":
-                ship = ship.up(value)
+                ship = ship.world_up(value)
             elif command == "S":
-                ship = ship.down(value)
+                ship = ship.world_down(value)
             elif command == "E":
-                ship = ship.right(value)
+                ship = ship.world_right(value)
             elif command == "W":
-                ship = ship.left(value)
+                ship = ship.world_left(value)
             elif command == "L":
                 ship = ship.turn_left(value // 90)
             elif command == "R":

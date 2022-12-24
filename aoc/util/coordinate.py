@@ -225,7 +225,7 @@ class TurtleDirection(Enum):
         elif self == self.RIGHT:
             return self.LEFT
 
-    def move(self, coordinate):
+    def move(self, coordinate: Coordinate):
         if self == TurtleDirection.UP:
             return coordinate.up()
         elif self == TurtleDirection.LEFT:
@@ -234,6 +234,17 @@ class TurtleDirection(Enum):
             return coordinate.down()
         elif self == TurtleDirection.RIGHT:
             return coordinate.right()
+
+    @property
+    def symbol(self) -> str:
+        if self == TurtleDirection.UP:
+            return '^'
+        elif self == TurtleDirection.LEFT:
+            return '<'
+        elif self == TurtleDirection.DOWN:
+            return 'v'
+        elif self == TurtleDirection.RIGHT:
+            return '>'
 
 
 @dataclass(frozen=True)
@@ -255,16 +266,16 @@ class Turtle(object):
 
         return Turtle(direction=direction, coordinate=self.coordinate)
 
-    def up(self, count=1):
+    def world_up(self, count=1):
         return Turtle(direction=self.direction, coordinate=self.coordinate.up(count))
 
-    def down(self, count=1):
+    def world_down(self, count=1):
         return Turtle(direction=self.direction, coordinate=self.coordinate.down(count))
 
-    def left(self, count=1):
+    def world_left(self, count=1):
         return Turtle(direction=self.direction, coordinate=self.coordinate.left(count))
 
-    def right(self, count=1):
+    def world_right(self, count=1):
         return Turtle(direction=self.direction, coordinate=self.coordinate.right(count))
 
     def forward(self, count=1):
@@ -273,3 +284,23 @@ class Turtle(object):
             coordinate = self.direction.move(coordinate)
 
         return Turtle(direction=self.direction, coordinate=coordinate)
+
+    def my_left(self) -> Coordinate:
+        if self.direction == TurtleDirection.UP:
+            return self.coordinate.left()
+        elif self.direction == TurtleDirection.LEFT:
+            return self.coordinate.down()
+        elif self.direction == TurtleDirection.DOWN:
+            return self.coordinate.right()
+        elif self.direction == TurtleDirection.RIGHT:
+            return self.coordinate.up()
+
+    def my_right(self) -> Coordinate:
+        if self.direction == TurtleDirection.UP:
+            return self.coordinate.right()
+        elif self.direction == TurtleDirection.LEFT:
+            return self.coordinate.up()
+        elif self.direction == TurtleDirection.DOWN:
+            return self.coordinate.left()
+        elif self.direction == TurtleDirection.RIGHT:
+            return self.coordinate.down()

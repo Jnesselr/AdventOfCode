@@ -217,6 +217,12 @@ class InfiniteGrid(Generic[T]):
 
         self._data[position] = item
 
+    def __delitem__(self, position):
+        position = self._to_coordinate(position)
+
+        if position in self:
+            del self._data[position]
+
     def __contains__(self, position):
         position = self._to_coordinate(position)
 

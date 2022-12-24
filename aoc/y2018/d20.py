@@ -30,7 +30,7 @@ class Y2018D20(object):
         grid: InfiniteGrid[str] = InfiniteGrid[str]()
 
         stack: List[Coordinate] = []
-        current_position = start
+        current_position: Coordinate = start
         for character in line:
             grid[current_position] = '.'
             for neighbor in current_position.neighbors8():
