@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from queue import Queue
 from typing import TypeVar, Generic, Union, List, Callable, Dict, Optional, Set, Iterator
 
 from aoc.util.coordinate import Coordinate, CoordinateSystem, BoundingBox
@@ -169,6 +170,29 @@ class InfiniteGrid(Generic[T]):
 
                     frontier.push(neighbor, priority)
                     came_from[neighbor] = current
+
+    def flood_fill(self, starting_coordinate: Coordinate, current_item: T, new_item: T):
+        q = Queue()
+        seen: set[Coordinate] = set()
+        q.put(starting_coordinate)
+        seen.add(starting_coordinate)
+
+        while not q.empty():
+            coordinate = q.get()
+            self._data[coordinate] = new_item
+
+            for neighbor in coordinate.neighbors():
+                if neighbor in seen:
+                    continue  # We've already seen it
+
+                if neighbor not in self._data:
+                    continue  # We don't have it in our grid
+
+                if self._data[neighbor] != current_item:
+                    continue  # It's not the item we're looking for
+
+                q.put(neighbor)
+                seen.add(neighbor)
 
     def flood_map(self,
                   start: Coordinate,

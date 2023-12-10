@@ -79,7 +79,8 @@ class Coordinate(object):
         for i in range(count):
             diff_coordinate = Coordinate(
                 x=diff_coordinate.y,
-                y=-diff_coordinate.x
+                y=-diff_coordinate.x,
+                system=self.system
             )
         return other + diff_coordinate
 
@@ -88,7 +89,8 @@ class Coordinate(object):
         for i in range(count):
             diff_coordinate = Coordinate(
                 x=-diff_coordinate.y,
-                y=diff_coordinate.x
+                y=diff_coordinate.x,
+                system=self.system
             )
         return other + diff_coordinate
 
@@ -100,10 +102,11 @@ class Coordinate(object):
         if isinstance(other, Coordinate):
             return Coordinate(
                 x=self.x * other.x,
-                y=self.y * other.y
+                y=self.y * other.y,
+                system=self.system
             )
 
-        return Coordinate(self.x * other, self.y * other)
+        return Coordinate(self.x * other, self.y * other, system=self.system)
 
     def __add__(self, other):
         if isinstance(other, Coordinate):
@@ -113,16 +116,17 @@ class Coordinate(object):
                 system=self.system
             )
 
-        return Coordinate(self.x + other, self.y + other)
+        return Coordinate(self.x + other, self.y + other, system=self.system)
 
     def __sub__(self, other):
         if isinstance(other, Coordinate):
             return Coordinate(
                 x=self.x - other.x,
-                y=self.y - other.y
+                y=self.y - other.y,
+                system=self.system
             )
 
-        return Coordinate(self.x - other, self.y - other)
+        return Coordinate(self.x - other, self.y - other, system=self.system)
 
 
 @dataclass(frozen=True)
