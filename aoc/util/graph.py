@@ -54,6 +54,10 @@ class Graph(Generic[T]):
     def all_nodes(self) -> Set[T]:
         return set(self._all_nodes)
 
+    @property
+    def all_edges(self) -> Set[Edge[T]]:
+        return set(self._edges)
+
     def add(self, start: T, end: T, weight=1):
         self._all_nodes.add(start)
         self._all_nodes.add(end)

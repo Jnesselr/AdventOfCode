@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from itertools import permutations, combinations
 from queue import Queue
 from typing import TypeVar, Generic, Union, List, Callable, Dict, Optional, Set, Iterator
 
@@ -129,6 +130,21 @@ class InfiniteGrid(Generic[T]):
             for test in tests:
                 if test in walkable_coordinates:
                     graph.add(coordinate, test)
+
+        return graph
+
+    def manhattan_graph(self, *walkable: T) -> Graph[Coordinate]:
+        walkable_coordinates = set()
+
+        for element in walkable:
+            walkable_coordinates = walkable_coordinates.union(self.find(element))
+
+        graph: Graph[Coordinate] = Graph[Coordinate](directional=False)
+
+        first_coord: Coordinate
+        second_coordinate: Coordinate
+        for first_coord, second_coordinate in combinations(walkable_coordinates, 2):
+            graph.add(first_coord, second_coordinate, weight=first_coord.manhattan(second_coordinate))
 
         return graph
 
