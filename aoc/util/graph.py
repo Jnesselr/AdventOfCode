@@ -132,6 +132,24 @@ class Graph(Generic[T]):
 
         return self
 
+    def get_weight(self, path: list[T]) -> int:
+        result = 0
+
+        for i in range(len(path) - 1):
+            start: T = path[i]
+            end: T = path[i + 1]
+
+            common_edges = self.edges_to(end).intersection(self.edges_from(start))
+            if len(common_edges) == 0:
+                raise ValueError("Could not find common edge between start and end")
+
+            if len(common_edges) > 1:
+                raise ValueError("Too many edges? Maybe not an issue?")
+
+            result += list(common_edges)[0].weight
+
+        return result
+
     def find_path(self, start: T, end: T, heuristic: Heuristic[T]):
         frontier: PriorityQueue[T] = PriorityQueue[T]()
         frontier.push(start, 0)
@@ -309,7 +327,6 @@ class Graph(Generic[T]):
                 self.add(start, end, weight=weight)
 
             self.remove(node)
-        print("Done")
 
     def interconnect(self):
         @dataclass
