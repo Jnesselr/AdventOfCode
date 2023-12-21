@@ -354,6 +354,31 @@ class Grid(InfiniteGrid[T]):
 
                 self._data[coordinate] = item
 
+    def fill_empty(self, item: T):
+        for row in range(self.height):
+            for col in range(self.width):
+                coordinate = Coordinate(col, row, system=CoordinateSystem.X_RIGHT_Y_DOWN)
+
+                if coordinate not in self._data:
+                    self._data[coordinate] = item
+
+    def fill_from_edges(self, to_replace: T, new_item: T):
+        for coordinate in self.find(to_replace):
+            if not coordinate.x == 0 and \
+                    not coordinate.y == 0 and \
+                    not coordinate.x == self.width - 1 and \
+                    not coordinate.y == self.height - 1:
+                continue  # Not on the edge, don't want to risk grabbing an inside one
+
+            if self[coordinate] != to_replace:  # Changed by a previous flood fill
+                continue
+
+            self.flood_fill(coordinate, to_replace, new_item)
+
+    def replace(self, to_replace: T, new_item: T):
+        for coordinate in self.find(to_replace):
+            self[coordinate] = new_item
+
     def print(self, key=None, not_found=' '):
         if key is None:
             def key(item):

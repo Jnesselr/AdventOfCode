@@ -250,6 +250,19 @@ class TurtleDirection(Enum):
         elif self == TurtleDirection.RIGHT:
             return '>'
 
+    @staticmethod
+    def from_direction(direction: str) -> TurtleDirection:
+        if direction in ['U']:
+            return TurtleDirection.UP
+        elif direction in ['D']:
+            return TurtleDirection.DOWN
+        elif direction in ['L']:
+            return TurtleDirection.LEFT
+        elif direction in ['R']:
+            return TurtleDirection.RIGHT
+
+        raise ValueError("Unknown direction")
+
 
 @dataclass(frozen=True)
 class Turtle(object):

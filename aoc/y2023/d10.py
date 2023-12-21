@@ -152,17 +152,7 @@ class Y2023D10(object):
         # loop. We make an assumption that the '.' tiles on each edge will be sufficient to connect everything but not
         # necessarily that any one of those tiles will connect to all of them.
 
-        for coordinate in double_grid.find('.'):
-            if not coordinate.x == 0 and \
-                    not coordinate.y == 0 and \
-                    not coordinate.x == double_grid.width - 1 and \
-                    not coordinate.y == double_grid.height - 1:
-                continue  # Not on the edge, don't want to risk grabbing an inside one
-
-            if double_grid[coordinate] != '.':  # Changed by a previous flood fill
-                continue
-
-            double_grid.flood_fill(coordinate, '.', 'O')
+        grid.fill_from_edges('O', '.')
 
         # Great, now anything with a '.' is inside, but we have to scale back down. We can do that by finding all of
         # them, and then only counting the even ones.
