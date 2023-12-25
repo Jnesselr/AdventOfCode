@@ -1,4 +1,6 @@
 from __future__ import annotations
+
+import enum
 from dataclasses import dataclass
 from queue import Queue
 from typing import TypeVar, Generic, Dict, Optional, Set, List, Callable, FrozenSet
@@ -42,13 +44,18 @@ class SearchAttempt(object):
     visited: FrozenSet[str]
 
 
+class CompressionWhatToKeep(enum.Enum):
+    LOWEST = enum.auto()
+    HIGHEST = enum.auto()
+    ALL = enum.auto()
+
 class Graph(Generic[T]):
     def __init__(self, directional=False):
         self._all_nodes = set()
         self._edges = set()
-        self._forward_nodes = {}
-        self._back_nodes = {}
-        self._directional = directional
+        self._forward_nodes: dict[T, set[Edge[T]]] = {}
+        self._back_nodes: dict[T, set[Edge[T]]] = {}
+        self._directional: bool = directional
 
     @property
     def all_nodes(self) -> Set[T]:
@@ -73,6 +80,20 @@ class Graph(Generic[T]):
             self._forward_nodes.setdefault(end, set()).add(back)
             self._back_nodes.setdefault(start, set()).add(back)
 
+    def remove_node_link(self, start: T, end: T):
+        edges_to_murder = set()
+        if start in self._forward_nodes:
+            for edge in self._forward_nodes[start]:
+                if edge.end == end:
+                    edges_to_murder.add(edge)
+
+        if end in self._back_nodes:
+            for edge in self._back_nodes[end]:
+                if edge.start == start:
+                    edges_to_murder.add(edge)
+
+        self._murder_edges(edges_to_murder)
+
     def remove(self, node: T):
         if node in self._all_nodes:
             self._all_nodes.remove(node)
@@ -86,21 +107,36 @@ class Graph(Generic[T]):
             for edge in self._back_nodes[node]:
                 edges_to_murder.add(edge)
 
+        self._murder_edges(edges_to_murder)
+
+    def _murder_edges(self, edges_to_murder):
         for edge in edges_to_murder:
             self._edges.remove(edge)
             if edge.start in self._forward_nodes:
                 if edge in self._forward_nodes[edge.start]:
                     self._forward_nodes[edge.start].remove(edge)
+
+                    if len(self._forward_nodes[edge.start]) == 0:
+                        del self._forward_nodes[edge.start]
             if edge.start in self._back_nodes:
                 if edge in self._back_nodes[edge.start]:
                     self._back_nodes[edge.start].remove(edge)
 
+                    if len(self._back_nodes[edge.start]) == 0:
+                        del self._back_nodes[edge.start]
+
             if edge.end in self._forward_nodes:
                 if edge in self._forward_nodes[edge.end]:
                     self._forward_nodes[edge.end].remove(edge)
+
+                    if len(self._forward_nodes[edge.start]) == 0:
+                        del self._forward_nodes[edge.start]
             if edge.end in self._back_nodes:
                 if edge in self._back_nodes[edge.end]:
                     self._back_nodes[edge.end].remove(edge)
+
+                    if len(self._back_nodes[edge.end]) == 0:
+                        del self._back_nodes[edge.end]
 
     def nodes_to(self, end: T) -> Set[T]:
         if end not in self._back_nodes:
@@ -173,7 +209,7 @@ class Graph(Generic[T]):
                 return result
 
             edge: Edge[T]
-            for edge in self._forward_nodes.setdefault(current, []):
+            for edge in self._forward_nodes.setdefault(current, set()):
                 neighbor = edge.end
                 new_cost = cost_so_far[current] + edge.weight
 
@@ -197,7 +233,7 @@ class Graph(Generic[T]):
             if item.value == end:
                 return item.path
 
-            for edge in self._forward_nodes.setdefault(item.value, []):
+            for edge in self._forward_nodes.setdefault(item.value, set()):
                 neighbor: T = edge.end
                 if neighbor in seen:
                     continue
@@ -209,6 +245,33 @@ class Graph(Generic[T]):
                 queue.push(WithSteps(value=neighbor, steps=new_steps, path=new_path), new_steps)
 
         return None
+
+    def flood_find_max(self, start: T, end: T) -> List[T]:
+        queue: Queue = Queue()
+        queue.put(WithSteps(value=start, steps=0, path=[start]))  # edge is weight here
+
+        longest_path: Optional[WithSteps] = None
+
+        while not queue.empty():
+            item: WithSteps[T] = queue.get()
+
+            if item.value == end:
+                if longest_path is None or longest_path.steps < item.steps:
+                    # print(item.steps, queue.qsize())
+                    longest_path = item
+                continue
+
+            for edge in self._forward_nodes.setdefault(item.value, set()):
+                neighbor: T = edge.end
+                if neighbor in item.path:
+                    continue
+
+                new_path = item.path.copy()
+                new_path.append(neighbor)
+                new_steps = item.steps + edge.weight
+                queue.put(WithSteps(value=neighbor, steps=new_steps, path=new_path))
+
+        return longest_path.path
 
     def map(self, func: Callable[[T], U]) -> Graph[U]:
         new_graph: Graph[U] = Graph[U](directional=self._directional)
@@ -298,7 +361,7 @@ class Graph(Generic[T]):
 
         return result
 
-    def compress(self, *what_to_keep: T):
+    def compress(self, *what_to_keep: T, keep_logic: CompressionWhatToKeep = CompressionWhatToKeep.LOWEST):
         what_to_keep = set(what_to_keep)
         for node in set(self._all_nodes):
             if node in what_to_keep:
@@ -308,7 +371,8 @@ class Graph(Generic[T]):
             edges_from = self.edges_from(node)
 
             # If we have duplicate edges, pick the lowest weighted one
-            lowest_weight: Dict[tuple[T, T], int] = {}
+            min_max_weight: Dict[tuple[T, T], int] = {}
+            to_keep: list[tuple[T, T, int]] = []
 
             edge_to: Edge[T]
             for edge_to in edges_to:
@@ -318,12 +382,22 @@ class Graph(Generic[T]):
                         continue
                     new_weight = edge_to.weight + edge_from.weight
                     edge_tuple = edge_to.start, edge_from.end
+                    with_weight_t = edge_to.start, edge_from.end, new_weight
 
-                    if edge_tuple not in lowest_weight or lowest_weight[edge_tuple] > new_weight:
-                        lowest_weight[edge_tuple] = new_weight
+                    if keep_logic == CompressionWhatToKeep.ALL:
+                        to_keep.append(with_weight_t)
+                    elif edge_tuple not in min_max_weight:
+                        min_max_weight[edge_tuple] = new_weight
+                        to_keep = [with_weight_t]
+                    elif keep_logic == CompressionWhatToKeep.LOWEST and min_max_weight[edge_tuple] > new_weight:
+                        min_max_weight[edge_tuple] = new_weight
+                        to_keep = [with_weight_t]
+                    elif keep_logic == CompressionWhatToKeep.HIGHEST and min_max_weight[edge_tuple] < new_weight:
+                        min_max_weight[edge_tuple] = new_weight
+                        to_keep = [with_weight_t]
 
-            for edge_tuple, weight in lowest_weight.items():
-                start, end = edge_tuple
+            for edge_tuple in to_keep:
+                start, end, weight = edge_tuple
                 self.add(start, end, weight=weight)
 
             self.remove(node)

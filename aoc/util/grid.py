@@ -114,13 +114,13 @@ class InfiniteGrid(Generic[T]):
 
         return result
 
-    def to_graph(self, *walkable: T) -> Graph[Coordinate]:
+    def to_graph(self, *walkable: T, directional=False) -> Graph[Coordinate]:
         walkable_coordinates = set()
 
         for element in walkable:
             walkable_coordinates = walkable_coordinates.union(self.find(element))
 
-        graph: Graph[Coordinate] = Graph[Coordinate]()
+        graph: Graph[Coordinate] = Graph[Coordinate](directional=directional)
 
         coordinate: Coordinate
         for coordinate in walkable_coordinates:
@@ -130,6 +130,8 @@ class InfiniteGrid(Generic[T]):
             for test in tests:
                 if test in walkable_coordinates:
                     graph.add(coordinate, test)
+                    if not directional:
+                        graph.add(test, coordinate)  # directional is just whether the graph is directional, we want both directions either way
 
         return graph
 
