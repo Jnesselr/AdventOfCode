@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import enum
 from dataclasses import dataclass
+from pathlib import Path
 from queue import Queue
 from typing import TypeVar, Generic, Dict, Optional, Set, List, Callable, FrozenSet
 
@@ -48,6 +49,7 @@ class CompressionWhatToKeep(enum.Enum):
     LOWEST = enum.auto()
     HIGHEST = enum.auto()
     ALL = enum.auto()
+
 
 class Graph(Generic[T]):
     def __init__(self, directional=False):
@@ -441,3 +443,45 @@ class Graph(Generic[T]):
                 if end in nodes_from:
                     continue  # Already exists as a direct connection
                 self.add(node, end, weight)
+
+    def dotviz(self, file_name: str):
+        with Path(file_name).open('w') as fh:
+            if self._directional:
+                fh.write("digraph {\n")
+            else:
+                fh.write("graph {\n")
+
+            for node in self._all_nodes:
+                for other_node in self.nodes_from(node):
+                    if self._directional:
+                        fh.write(f"{node} -> {other_node};\n")
+                    else:
+                        fh.write(
+                            f"{node} -- {other_node};\n")  # TODO Handle the fact that there's an edge in the other direction
+
+            fh.write("}")
+
+    def separate(self):
+        nodes: set[T] = set(self._all_nodes)
+        while len(nodes) > 0:
+            starting_node: T = nodes.pop()
+            graph: Graph[T] = Graph(directional=True)
+            q: Queue = Queue()
+            q.put(starting_node)
+
+            while not q.empty():
+                node: T = q.get()
+
+                for edge in self.edges_from(node):
+                    graph.add(node, edge.end, weight=edge.weight)
+                    if edge.end in nodes:
+                        q.put(edge.end)
+                        nodes.remove(edge.end)
+
+                for edge in self.edges_to(node):
+                    graph.add(edge.start, node, weight=edge.weight)
+                    if edge.start in nodes:
+                        q.put(edge.start)
+                        nodes.remove(edge.start)
+
+            yield graph
