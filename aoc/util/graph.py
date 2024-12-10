@@ -485,3 +485,23 @@ class Graph(Generic[T]):
                         nodes.remove(edge.start)
 
             yield graph
+
+    def subgraph(self, starting_node: T) -> Graph:
+        result = Graph[T](directional=self._directional)
+
+        seen: set[Edge[T]] = {starting_node}
+        to_check: list[T] = [starting_node]
+
+        while len(to_check) > 0:
+            node: T = to_check.pop()
+
+            next_edges: set[Edge[T]] = self.edges_from(node)
+            for edge in next_edges:
+                if edge in seen:
+                    continue
+
+                to_check.append(edge.end)
+                seen.add(edge)
+                result.add(edge.start, edge.end, edge.weight)
+
+        return result
