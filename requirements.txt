@@ -1,3 +1,4 @@
+Pillow
 sympy
 tqdm
 z3-solver
