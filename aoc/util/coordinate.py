@@ -321,3 +321,12 @@ class Turtle(object):
             return self.coordinate.left()
         elif self.direction == TurtleDirection.RIGHT:
             return self.coordinate.down()
+
+    def __str__(self):
+        direction_symbol = {
+            TurtleDirection.LEFT: "L",
+            TurtleDirection.RIGHT: "R",
+            TurtleDirection.UP: "U",
+            TurtleDirection.DOWN: "D",
+        }[self.direction]
+        return f"{direction_symbol}_{self.coordinate.x}_{self.coordinate.y}"

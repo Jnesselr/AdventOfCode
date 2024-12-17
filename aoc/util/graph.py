@@ -6,7 +6,7 @@ from pathlib import Path
 from queue import Queue
 from typing import TypeVar, Generic, Dict, Optional, Set, List, Callable, FrozenSet
 
-from aoc.util.coordinate import Coordinate
+from aoc.util.coordinate import Coordinate, Turtle
 from aoc.util.queue import PriorityQueue
 
 T = TypeVar('T')
@@ -28,6 +28,12 @@ class Heuristic(Generic[T]):
 class CoordinateHeuristic(Heuristic[Coordinate]):
     def __call__(self, start: Coordinate, end: Coordinate) -> int:
         return start.manhattan(end)
+
+
+class TurtleHeuristic(Heuristic[Turtle]):
+    def __call__(self, start: Turtle, end: Turtle) -> int:
+        # TODO Do we ever need to care about the turtle direction?
+        return start.coordinate.manhattan(end.coordinate)
 
 
 @dataclass(frozen=True)
@@ -164,6 +170,14 @@ class Graph(Generic[T]):
 
         return set(self._forward_nodes[start])
 
+    def edges(self, start: T, end: T) -> Set[Edge[T]]:
+        if start not in self._forward_nodes:
+            return set()
+        if end not in self._back_nodes:
+            return set()
+
+        return set(self._forward_nodes[start]).intersection(self._back_nodes[end])
+
     def merge(self, graph: Graph[T]) -> Graph[T]:
         for edge in graph._edges:
             self.add(edge.start, edge.end, edge.weight)
@@ -177,14 +191,13 @@ class Graph(Generic[T]):
             start: T = path[i]
             end: T = path[i + 1]
 
-            common_edges = self.edges_to(end).intersection(self.edges_from(start))
+            common_edges = self.edges(start, end)
             if len(common_edges) == 0:
                 raise ValueError("Could not find common edge between start and end")
 
-            if len(common_edges) > 1:
-                raise ValueError("Too many edges? Maybe not an issue?")
+            edge = min(common_edges, key=lambda e: e.weight)
 
-            result += list(common_edges)[0].weight
+            result += edge.weight
 
         return result
 
@@ -259,7 +272,6 @@ class Graph(Generic[T]):
 
             if item.value == end:
                 if longest_path is None or longest_path.steps < item.steps:
-                    # print(item.steps, queue.qsize())
                     longest_path = item
                 continue
 
@@ -503,5 +515,74 @@ class Graph(Generic[T]):
                 to_check.append(edge.end)
                 seen.add(edge)
                 result.add(edge.start, edge.end, edge.weight)
+
+        return result
+
+    def simplify(self):
+        """
+        This method will shorten paths such that A -> B -> C just becomes A -> C.
+        :return:
+        """
+
+        q = Queue()
+        for node in self._all_nodes:
+            q.put(node)
+
+            edges_from: set[Edge[T]] = self.edges_from(node)
+            edges_to: set[Edge[T]] = self.edges_to(node)
+            if len(edges_from) != 1 or len(edges_to) != 1:
+                continue
+
+            edge_from = edges_from.pop()
+            next_node = edge_from.end
+            edge_to = edges_to.pop()
+            previous_node = edge_to.start
+            self._murder_edges([edge_from, edge_to])
+            self.add(previous_node, next_node, weight=edge_from.weight + edge_to.weight)
+
+    def get_all_nodes_with_shortest_path(self,
+                                         starting_node: T,
+                                         path_finder: Callable[[T], Optional[list[T]]]
+                                         ) -> Optional[set[T]]:
+        result = set()
+        starting_path = path_finder(starting_node)
+        starting_weight = self.get_weight(starting_path)
+
+        node_to_min_weight: dict[T, int] = {}
+
+        q = Queue()
+        seen: set[T] = set()
+
+        for i, node in enumerate(starting_path):
+            node_to_min_weight[node] = self.get_weight(starting_path[i:])
+            q.put(node)
+            seen.add(node)
+            result.add(node)
+
+        while not q.empty():
+            node: T = q.get()
+            edges = self.edges_from(node)
+            for edge in edges:
+                if edge.end in seen:
+                    continue
+
+                # This might be an alternate path
+                new_path = path_finder(edge.end)
+                if new_path is None:
+                    continue  # No path to the end
+
+                new_weight = self.get_weight(new_path)
+                if node_to_min_weight[node] < edge.weight + new_weight:
+                    continue  # More expensive to go down this route
+
+                # Now we can add every node that's part of the new path that we've never seen before
+                for i, node in enumerate(new_path):
+                    if node in seen:
+                        continue
+
+                    node_to_min_weight[node] = self.get_weight(new_path[i:])
+                    q.put(edge.end)
+                    seen.add(edge.end)
+                    result.add(edge.end)
 
         return result
