@@ -1,4 +1,5 @@
 import re
+from queue import Queue
 from typing import Callable, Optional
 
 import z3
@@ -51,7 +52,7 @@ class NormalComputer:
 
             self._instruction_pointer = next_ip
 
-        return ",".join(str(x) for x in result)
+        return result
 
     def _combo_operand(self, operand: int) -> int:
         if 0 <= operand <= 3:
@@ -158,7 +159,7 @@ class Y2024D17(object):
             self._register_c
         )
 
-        result = computer.run()
+        result = ",".join(str(x) for x in computer.run())
 
         print("Part 1:", result)
 
@@ -179,8 +180,33 @@ class Y2024D17(object):
 
         print("Part 2:", result)
 
+    def part2_not_z3(self):
+        result = 0
+        q = Queue()
+        q.put(0)
+
+        while not q.empty():
+            a = q.get()
+
+            a_options = [(a << 3) + i for i in range(8)]
+            for option in a_options:
+                computer = NormalComputer(self._program, option, self._register_b, self._register_c)
+                output = computer.run()
+                correct_a = self._program == output
+                if correct_a:
+                    result = option
+                    q = Queue()  # Nothing more to process
+                    break
+
+                good_candidate = self._program[-len(output):] == output
+                if good_candidate:
+                    q.put(option)
+
+        print("Part 2 [not z3]:", result)
+
 
 if __name__ == '__main__':
     code = Y2024D17("2024/17.txt")
     code.part1()
     code.part2()
+    code.part2_not_z3()
