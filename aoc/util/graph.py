@@ -261,6 +261,38 @@ class Graph(Generic[T]):
 
         return None
 
+    def flood_find_all(self, start: T, end: T) -> set[tuple[T, ...]]:
+        queue: PriorityQueue[WithSteps[T]] = PriorityQueue[WithSteps[T]]()
+        queue.push(WithSteps(value=start, steps=0, path=[start]), 0)
+
+        result: set[tuple[T, ...]] = set()
+        shortest_length: Optional[int] = None
+
+        while queue:
+            item: WithSteps[T] = queue.pop()
+
+            if item.value == end:
+                if shortest_length is None:
+                    shortest_length = item.steps
+
+                if item.steps == shortest_length:
+                    result.add(tuple(item.path))
+
+                continue
+
+            for edge in self._forward_nodes.setdefault(item.value, set()):
+                neighbor: T = edge.end
+
+                if neighbor in item.path:
+                    continue
+
+                new_path = item.path.copy()
+                new_path.append(neighbor)
+                new_steps = item.steps + 1
+                queue.push(WithSteps(value=neighbor, steps=new_steps, path=new_path), new_steps)
+
+        return result
+
     def flood_find_max(self, start: T, end: T) -> List[T]:
         queue: Queue = Queue()
         queue.put(WithSteps(value=start, steps=0, path=[start]))  # edge is weight here
@@ -546,7 +578,6 @@ class Graph(Generic[T]):
                                          ) -> Optional[set[T]]:
         result = set()
         starting_path = path_finder(starting_node)
-        starting_weight = self.get_weight(starting_path)
 
         node_to_min_weight: dict[T, int] = {}
 
